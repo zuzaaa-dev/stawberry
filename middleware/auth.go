@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"net/http"
+
+	"marketplace/auth"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"marketplace/auth"
-	"net/http"
 )
 
 func AuthMiddleware() gin.HandlerFunc {

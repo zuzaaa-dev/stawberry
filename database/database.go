@@ -1,9 +1,11 @@
 package database
 
 import (
+	"log"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
+
 	"marketplace/config"
 	"marketplace/models"
 )
