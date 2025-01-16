@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"net/http"
+
+	"marketplace/auth"
+	"marketplace/models"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"marketplace/auth"
-	"marketplace/models"
-	"net/http"
 )
 
 func Register(db *gorm.DB) gin.HandlerFunc {

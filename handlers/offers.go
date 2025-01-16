@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-	"marketplace/models"
 	"net/http"
 	"time"
+
+	"marketplace/models"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func CreateOffer(db *gorm.DB) gin.HandlerFunc {

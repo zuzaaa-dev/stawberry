@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"github.com/golang-jwt/jwt"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 var JwtKey = []byte("your-secret-key")

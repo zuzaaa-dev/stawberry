@@ -36,11 +36,7 @@ func initializeApp() error {
 	}
 
 	// Initialize database connection
-	var err error
-	db, err = database.InitDB(cfg)
-	if err != nil {
-		return fmt.Errorf("failed to initialize database: %w", err)
-	}
+	db = database.InitDB(cfg)
 
 	// Initialize router
 	router = setupRouter(db)
