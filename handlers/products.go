@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-	"marketplace/models"
 	"math"
 	"net/http"
 	"strconv"
+
+	"marketplace/models"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // AddProduct handles the creation of a new product in the database.
@@ -121,6 +123,10 @@ func GetStoreProducts(db *gorm.DB) gin.HandlerFunc {
 
 		var total int64
 		if err := db.Model(&models.Product{}).Where("store_id = ?", id).Count(&total).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Products not found in this store"})
+				return
+			}
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
