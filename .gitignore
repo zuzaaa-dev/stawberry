@@ -1,1 +1,3 @@
 .idea
+/database/database_test.go
+/handlers/products_test.go

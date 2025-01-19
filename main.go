@@ -96,6 +96,8 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 			{
 				products.GET("", handlers.GetProducts(db))
 				products.GET("/:id", handlers.GetProduct(db))
+				products.PUT("/:id", handlers.UpdateProduct(db))
+				products.POST("", handlers.AddProduct(db))
 			}
 
 			// Offer management
