@@ -1,4 +1,5 @@
 linters:
+  disable-all: true
   enable:
     - errcheck # checking for unchecked errors
     - unused # checks Go code for unused constants, variables, functions and types
