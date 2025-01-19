@@ -69,11 +69,11 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		{
 			// Auth endpoints
 			public.POST("/auth/register", handlers.Register(db))
-			public.POST("/auth/login", handlers.Login(db))
+			//public.POST("/auth/login", handlers.Login(db))
 
 			// Public product search
-			public.GET("/products/search", handlers.SearchProducts(db))
-			public.GET("/stores", handlers.GetStores(db))
+			//public.GET("/products/search", handlers.SearchProducts(db))
+			//public.GET("/stores", handlers.GetStores(db))
 		}
 
 		// Protected routes
@@ -81,13 +81,13 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		protected.Use(middleware.AuthMiddleware())
 		{
 			// User profile
-			protected.GET("/profile", handlers.GetProfile(db))
-			protected.PUT("/profile", handlers.UpdateProfile(db))
+			//protected.GET("/profile", handlers.GetProfile(db))
+			//protected.PUT("/profile", handlers.UpdateProfile(db))
 
 			// Store management
 			stores := protected.Group("/stores")
 			{
-				stores.GET("/:id", handlers.GetStore(db))
+				//stores.GET("/:id", handlers.GetStore(db))
 				stores.GET("/:id/products", handlers.GetStoreProducts(db))
 			}
 
@@ -104,18 +104,18 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 			offers := protected.Group("/offers")
 			{
 				offers.POST("", handlers.CreateOffer(db))
-				offers.GET("", handlers.GetUserOffers(db))
-				offers.GET("/:id", handlers.GetOffer(db))
-				offers.PUT("/:id/status", handlers.UpdateOfferStatus(db))
-				offers.DELETE("/:id", handlers.CancelOffer(db))
+				//offers.GET("", handlers.GetUserOffers(db))
+				//offers.GET("/:id", handlers.GetOffer(db))
+				//offers.PUT("/:id/status", handlers.UpdateOfferStatus(db))
+				//offers.DELETE("/:id", handlers.CancelOffer(db))
 			}
 
 			// Notification management
-			notifications := protected.Group("/notifications")
+			//notifications := protected.Group("/notifications")
 			{
-				notifications.GET("", handlers.GetNotifications(db))
-				notifications.PUT("/:id/read", handlers.MarkNotificationRead(db))
-				notifications.DELETE("/:id", handlers.DeleteNotification(db))
+				//notifications.GET("", handlers.GetNotifications(db))
+				//notifications.PUT("/:id/read", handlers.MarkNotificationRead(db))
+				//notifications.DELETE("/:id", handlers.DeleteNotification(db))
 			}
 		}
 	}
