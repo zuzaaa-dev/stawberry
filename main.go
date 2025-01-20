@@ -17,6 +17,7 @@ import (
 	"marketplace/database"
 	"marketplace/handlers"
 	"marketplace/middleware"
+	"marketplace/migrator"
 )
 
 // Global variables for application state
@@ -37,6 +38,12 @@ func initializeApp() error {
 
 	// Initialize database connection
 	db = database.InitDB(cfg)
+
+	// Apply migrations
+	migrationsDir := "migrations" // Path to the migrations folder
+	if err := migrator.RunMigrations(db, migrationsDir); err != nil {
+		log.Fatalf("Failed to apply migrations: %v", err)
+	}
 
 	// Initialize router
 	router = setupRouter(db)
