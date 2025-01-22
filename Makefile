@@ -1,5 +1,5 @@
 golint:
-	golangci-lint run -c .golangci.yaml --issues-exit-code 0
+	golangci-lint run -c .golangci.yaml
 .PHONY:golint
 
 gofmt:
