@@ -15,11 +15,11 @@ import (
 )
 
 type ProductHandler struct {
-	repo repository.ProductRepository
+	repo repository.ProductRepositoryInf
 }
 
-func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
-	return &ProductHandler{repo: repo}
+func NewProductHandler(repo repository.ProductRepositoryInf) ProductHandler {
+	return ProductHandler{repo: repo}
 }
 
 // AddProduct handles the creation of a new product in the database.
