@@ -10,15 +10,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type productRepository struct {
+type ProductRepository struct {
 	db *gorm.DB
 }
 
-func NewProductRepository(db *gorm.DB) *productRepository {
-	return &productRepository{db: db}
+func NewProductRepository(db *gorm.DB) *ProductRepository {
+	return &ProductRepository{db: db}
 }
 
-func (r *productRepository) CreateProduct(product *models.Product) error {
+func (r *ProductRepository) CreateProduct(product *models.Product) error {
 	if err := r.db.Create(product).Error; err != nil {
 		if isDuplicateError(err) {
 			return &apperrors.ProductError{
@@ -37,7 +37,7 @@ func (r *productRepository) CreateProduct(product *models.Product) error {
 	return nil
 }
 
-func (r *productRepository) GetProductByID(id string) (*models.Product, error) {
+func (r *ProductRepository) GetProductByID(id string) (*models.Product, error) {
 	var product models.Product
 	if err := r.db.Where("id = ?", id).First(&product).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -53,7 +53,7 @@ func (r *productRepository) GetProductByID(id string) (*models.Product, error) {
 	return &product, nil
 }
 
-func (r *productRepository) GetProducts(offset, limit int) ([]models.Product, int, error) {
+func (r *ProductRepository) GetProducts(offset, limit int) ([]models.Product, int, error) {
 	var total int64
 	if err := r.db.Model(&models.Product{}).Count(&total).Error; err != nil {
 		return nil, 0, &apperrors.ProductError{
@@ -75,7 +75,7 @@ func (r *productRepository) GetProducts(offset, limit int) ([]models.Product, in
 	return products, int(total), nil
 }
 
-func (r *productRepository) GetStoreProducts(id string, offset, limit int) ([]models.Product, int, error) {
+func (r *ProductRepository) GetStoreProducts(id string, offset, limit int) ([]models.Product, int, error) {
 	var exists bool
 	if err := r.db.Model(&models.Store{}).Where("id = ?", id).Select("1").Scan(&exists).Error; err != nil {
 		return nil, 0, &apperrors.ProductError{
@@ -109,7 +109,7 @@ func (r *productRepository) GetStoreProducts(id string, offset, limit int) ([]mo
 	return products, int(total), nil
 }
 
-func (r *productRepository) UpdateProduct(id string, update *models.ProductUpdate) error {
+func (r *ProductRepository) UpdateProduct(id string, update *models.ProductUpdate) error {
 	tx := r.db.Model(&models.Product{}).Where("id = ?", id).Updates(update)
 
 	if tx.Error != nil {
