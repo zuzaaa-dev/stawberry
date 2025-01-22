@@ -2,17 +2,19 @@ package repository
 
 import (
 	"errors"
-	"gorm.io/gorm"
+	"strings"
+
 	"marketplace/models"
 	"marketplace/models/apperrors"
-	"strings"
+
+	"gorm.io/gorm"
 )
 
 type productRepository struct {
 	db *gorm.DB
 }
 
-func NewProductRepository(db *gorm.DB) *productRepository {
+func NewProductRepository(db *gorm.DB) ProductRepository {
 	return &productRepository{db: db}
 }
 

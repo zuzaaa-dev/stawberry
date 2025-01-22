@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"errors"
-	"marketplace/models/apperrors"
-	"marketplace/repository"
 	"math"
 	"net/http"
 	"strconv"
+
+	"marketplace/models/apperrors"
+	"marketplace/repository"
 
 	"marketplace/models"
 
@@ -28,12 +29,16 @@ func (h *ProductHandler) AddProduct(c *gin.Context) {
 	var product models.Product
 
 	if err := c.ShouldBindJSON(&product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperrors.BadRequest,
+			"message": "Invalid product data",
+			"details": err.Error(),
+		})
 		return
 	}
 
 	if err := h.repo.CreateProduct(&product); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleError(c, err)
 		return
 	}
 
@@ -47,28 +52,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 
 	product, err := h.repo.GetProductByID(id)
 	if err != nil {
-		var productErr *apperrors.ProductError
-		if errors.As(err, &productErr) {
-			status := http.StatusInternalServerError
-
-			switch productErr.Code {
-			case apperrors.NotFound:
-				status = http.StatusNotFound
-			case apperrors.DatabaseError:
-				status = http.StatusInternalServerError
-			}
-
-			c.JSON(status, gin.H{
-				"code":    productErr.Code,
-				"message": productErr.Message,
-			})
-			return
-		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":    apperrors.InternalError,
-			"message": "An unexpected error occurred",
-		})
+		handleError(c, err)
 		return
 	}
 
@@ -80,22 +64,27 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 func (h *ProductHandler) GetProducts(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperrors.BadRequest,
+			"message": "Invalid page number",
+		})
 		return
 	}
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit < 1 || limit > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit value"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperrors.BadRequest,
+			"message": "Invalid limit value (should be between 1 and 100)",
+		})
 		return
 	}
 
 	offset := (page - 1) * limit
 
-	// Get recordings with pagination
 	products, total, err := h.repo.GetProducts(offset, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleError(c, err)
 		return
 	}
 
@@ -121,13 +110,19 @@ func (h *ProductHandler) GetStoreProducts(c *gin.Context) {
 
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperrors.BadRequest,
+			"message": "Invalid page number",
+		})
 		return
 	}
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit < 1 || limit > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit value"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperrors.BadRequest,
+			"message": "Invalid limit value (should be between 1 and 100)",
+		})
 		return
 	}
 
@@ -135,7 +130,7 @@ func (h *ProductHandler) GetStoreProducts(c *gin.Context) {
 
 	products, total, err := h.repo.GetStoreProducts(id, offset, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleError(c, err)
 		return
 	}
 
@@ -160,13 +155,16 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 
 	var update models.ProductUpdate
 	if err := c.ShouldBindJSON(&update); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid update"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperrors.BadRequest,
+			"message": "Invalid update data",
+			"details": err.Error(),
+		})
 		return
 	}
 
-	err := h.repo.UpdateProduct(id, &update)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.repo.UpdateProduct(id, &update); err != nil {
+		handleError(c, err)
 		return
 	}
 

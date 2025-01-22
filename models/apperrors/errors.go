@@ -9,6 +9,7 @@ const (
 	DatabaseError  = "DATABASE_ERROR"
 	InternalError  = "INTERNAL_ERROR"
 	DuplicateError = "DUPLICATE_ERROR"
+	BadRequest     = "BAD_REQUEST"
 )
 
 type ProductError struct {
