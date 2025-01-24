@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	objectstorage "marketplace/s3"
 	"net/http"
 	"os"
 	"os/signal"
@@ -39,6 +40,9 @@ func initializeApp() error {
 	// Initialize database connection
 	db = database.InitDB(cfg)
 
+	// Initialize object storage s3
+	s3 := objectstorage.ObjectStorageConn(cfg)
+
 	// Apply migrations
 	migrationsDir := "migrations" // Path to the migrations folder
 	if err := migrator.RunMigrations(db, migrationsDir); err != nil {
@@ -46,13 +50,13 @@ func initializeApp() error {
 	}
 
 	// Initialize router
-	router = setupRouter(db)
+	router = setupRouter(db, s3)
 
 	return nil
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(db *gorm.DB) *gin.Engine {
+func setupRouter(db *gorm.DB, s3 *objectstorage.BucketBasics) *gin.Engine {
 	router := gin.New()
 
 	// Add default middleware
@@ -75,12 +79,12 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		public := api.Group("")
 		{
 			// Auth endpoints
-			public.POST("/auth/register", handlers.Register(db))
-			public.POST("/auth/login", handlers.Login(db))
+			public.POST("/auth/register", handlers.Register(db, s3))
+			public.POST("/auth/login", handlers.Login(db, s3))
 
 			// Public product search
-			public.GET("/products/search", handlers.SearchProducts(db))
-			public.GET("/stores", handlers.GetStores(db))
+			public.GET("/products/search", handlers.SearchProducts(db, s3))
+			public.GET("/stores", handlers.GetStores(db, s3))
 		}
 
 		// Protected routes
@@ -88,41 +92,41 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 		protected.Use(middleware.AuthMiddleware())
 		{
 			// User profile
-			protected.GET("/profile", handlers.GetProfile(db))
-			protected.PUT("/profile", handlers.UpdateProfile(db))
+			protected.GET("/profile", handlers.GetProfile(db, s3))
+			protected.PUT("/profile", handlers.UpdateProfile(db, s3))
 
 			// Store management
 			stores := protected.Group("/stores")
 			{
-				stores.GET("/:id", handlers.GetStore(db))
-				stores.GET("/:id/products", handlers.GetStoreProducts(db))
+				stores.GET("/:id", handlers.GetStore(db, s3))
+				stores.GET("/:id/products", handlers.GetStoreProducts(db, s3))
 			}
 
 			// Product management
 			products := protected.Group("/products")
 			{
-				products.GET("", handlers.GetProducts(db))
-				products.GET("/:id", handlers.GetProduct(db))
-				products.PUT("/:id", handlers.UpdateProduct(db))
-				products.POST("", handlers.AddProduct(db))
+				products.GET("", handlers.GetProducts(db, s3))
+				products.GET("/:id", handlers.GetProduct(db, s3))
+				products.PUT("/:id", handlers.UpdateProduct(db, s3))
+				products.POST("", handlers.AddProduct(db, s3))
 			}
 
 			// Offer management
 			offers := protected.Group("/offers")
 			{
-				offers.POST("", handlers.CreateOffer(db))
-				offers.GET("", handlers.GetUserOffers(db))
-				offers.GET("/:id", handlers.GetOffer(db))
-				offers.PUT("/:id/status", handlers.UpdateOfferStatus(db))
-				offers.DELETE("/:id", handlers.CancelOffer(db))
+				offers.POST("", handlers.CreateOffer(db, s3))
+				offers.GET("", handlers.GetUserOffers(db, s3))
+				offers.GET("/:id", handlers.GetOffer(db, s3))
+				offers.PUT("/:id/status", handlers.UpdateOfferStatus(db, s3))
+				offers.DELETE("/:id", handlers.CancelOffer(db, s3))
 			}
 
 			// Notification management
 			notifications := protected.Group("/notifications")
 			{
-				notifications.GET("", handlers.GetNotifications(db))
-				notifications.PUT("/:id/read", handlers.MarkNotificationRead(db))
-				notifications.DELETE("/:id", handlers.DeleteNotification(db))
+				notifications.GET("", handlers.GetNotifications(db, s3))
+				notifications.PUT("/:id/read", handlers.MarkNotificationRead(db, s3))
+				notifications.DELETE("/:id", handlers.DeleteNotification(db, s3))
 			}
 		}
 	}

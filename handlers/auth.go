@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	objectstorage "marketplace/s3"
 	"net/http"
 
 	"marketplace/auth"
@@ -11,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Register(db *gorm.DB) gin.HandlerFunc {
+func Register(db *gorm.DB, s3 *objectstorage.BucketBasics) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var user models.User
 		if err := c.ShouldBindJSON(&user); err != nil {

@@ -6,12 +6,17 @@ import (
 )
 
 type Config struct {
-	DBHost     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBPort     string
-	ServerPort string
+	DBHost        string
+	DBUser        string
+	DBPassword    string
+	DBName        string
+	DBPort        string
+	ServerPort    string
+	AccessKey     string
+	SecretKEY     string
+	BucketName    string
+	URL           string
+	SigningRegion string
 }
 
 func LoadConfig() *Config {
@@ -22,6 +27,12 @@ func LoadConfig() *Config {
 		DBName:     getEnv("DB_NAME", "price_negotiation"),
 		DBPort:     getEnv("DB_PORT", "5432"),
 		ServerPort: getEnv("SERVER_PORT", "8080"),
+
+		AccessKey:     getEnv("ACCESS_KEY", "YCAJEA42mQqWIYN-INQRF0DTI"),
+		SecretKEY:     getEnv("SECRET_KEY", "YCM1PQy6UGDHD7sKi2Q3nBDDyur8fZFEfSEC33Fn"),
+		BucketName:    getEnv("BUCKET_NAME", "stawberry"),
+		URL:           getEnv("URL", "https://storage.yandexcloud.net"),
+		SigningRegion: getEnv("SIGNING_REGION", "ru-central1"),
 	}
 }
 

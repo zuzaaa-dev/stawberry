@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	objectstorage "marketplace/s3"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateOffer(db *gorm.DB) gin.HandlerFunc {
+func CreateOffer(db *gorm.DB, s3 *objectstorage.BucketBasics) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 
