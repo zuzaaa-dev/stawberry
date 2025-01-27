@@ -9,189 +9,171 @@ import (
 	"time"
 
 	"marketplace/models"
+	"marketplace/repository"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func CreateOffer(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-
-		var offer models.Offer
-		if err := c.ShouldBindJSON(&offer); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		offer.UserID = userID.(uint)
-		offer.Status = "pending"
-		offer.ExpiresAt = time.Now().Add(24 * time.Hour)
-
-		if err := db.Create(&offer).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		// Create notification for store
-		notification := models.Notification{
-			UserID:  offer.StoreID, // Store notification
-			OfferID: offer.ID,
-			Message: fmt.Sprintf("New offer received for product %d", offer.ProductID),
-		}
-		db.Create(&notification)
-
-		c.JSON(http.StatusCreated, offer)
-	}
+type OfferHandlers struct {
+	repo repository.OfferRepository
 }
 
-func GetUserOffers(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-
-		//TODO:надо вынести в pkg/utils/paginators.go или что то подобное
-		page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
-		if err != nil || page < 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
-			return
-		}
-
-		limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-		if err != nil || limit < 1 || limit > 100 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit value"})
-			return
-		}
-
-		offset := (page - 1) * limit
-
-		var total int64
-		if err := db.Model(&models.Offer{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var offers []models.Offer
-		if err := db.Offset(offset).Limit(limit).Find(&offers).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		totalPages := int(math.Ceil(float64(total) / float64(limit)))
-
-		c.JSON(http.StatusOK, gin.H{
-			"data": offers,
-			"meta": gin.H{
-				"current_page": page,
-				"per_page":     limit,
-				"total_items":  total,
-				"total_pages":  totalPages,
-			},
-		})
-	}
-}
-
-func GetOffer(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
-			return
-		}
-
-		var offer models.Offer
-		if err := db.Where("id = ?", id).First(&offer).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Offer not found"})
-			} else {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			}
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"data": offer,
-		})
-	}
+func NewOfferHandler(repo repository.OfferRepository) *OfferHandlers {
+	return &OfferHandlers{repo: repo}
 }
 
 type UpdateOfferStatusReq struct {
 	Status string `json:"status" binding:"required"`
 }
 
-func UpdateOfferStatus(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
-			return
-		}
+func (h *OfferHandlers) CreateOffer(c *gin.Context) {
+	userID, _ := c.Get("userID")
 
-		//предположу что статус будет лежать в теле запроса
-		var req UpdateOfferStatusReq
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
-			return
-		}
+	var offer models.Offer
+	if err := c.ShouldBindJSON(&offer); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-		result := db.Model(&models.Offer{}).Where("id = ?", id).Update("status", req.Status)
-		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-			return
+	offer.UserID = userID.(uint)
+	offer.Status = "pending"
+	offer.ExpiresAt = time.Now().Add(24 * time.Hour)
+
+	var err error
+	if offer.ID, err = h.repo.CreateOffer(offer); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create notification for store
+	notification := models.Notification{
+		UserID:  offer.StoreID, // Store notification
+		OfferID: offer.ID,
+		Message: fmt.Sprintf("New offer received for product %d", offer.ProductID),
+	}
+	//h.notifyRepo.Create(&notification) TODO: после добавления уведомлений
+
+	c.JSON(http.StatusCreated, offer)
+}
+
+func (h *OfferHandlers) GetUserOffers(c *gin.Context) {
+	userID, _ := c.Get("userID")
+
+	//TODO:надо вынести в pkg/utils/paginators.go или что то подобное
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil || limit < 1 || limit > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit value"})
+		return
+	}
+
+	offset := (page - 1) * limit
+
+	var (
+		offers []models.Offer
+		total  int64
+	)
+	if offers, total, err = h.repo.GetUserOffers(userID.(uint), limit, offset); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": offers,
+		"meta": gin.H{
+			"current_page": page,
+			"per_page":     limit,
+			"total_items":  total,
+			"total_pages":  totalPages,
+		},
+	})
+}
+
+func (h *OfferHandlers) GetOffer(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
+		return
+	}
+
+	var offer *models.Offer
+	if offer, err = h.repo.GetOffer(uint(id)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Offer not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
-		if result.RowsAffected == 0 {
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": offer,
+	})
+}
+
+func (h *OfferHandlers) UpdateOfferStatus(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
+		return
+	}
+
+	//предположу что статус будет лежать в теле запроса
+	var req UpdateOfferStatusReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
+		return
+	}
+
+	var offer *models.Offer
+	if offer, err = h.repo.UpdateOfferStatus(uint(id), req.Status); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create notification for store
+	notification := models.Notification{
+		UserID:  offer.StoreID, // Store notification
+		OfferID: offer.ID,
+		Message: fmt.Sprintf("Offer %d has changed status to %s", offer.ID, offer.Status),
+	}
+	//h.notifyRepo.Create(&notification) TODO: после добавления уведомлений
+
+	c.JSON(http.StatusCreated, offer)
+}
+
+func (h *OfferHandlers) CancelOffer(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
+		return
+	}
+
+	var offer *models.Offer
+	if offer, err = h.repo.DeleteOffer(uint(id)); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Offer not found"})
 			return
 		}
-
-		var offer models.Offer
-		if err := db.Where("id = ?", id).First(&offer).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		// Create notification for store
-		notification := models.Notification{
-			UserID:  offer.StoreID, // Store notification
-			OfferID: offer.ID,
-			Message: fmt.Sprintf("Offer %d has changed status to %s", offer.ID, offer.Status),
-		}
-		db.Create(&notification)
-
-		c.JSON(http.StatusCreated, offer)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-}
 
-func CancelOffer(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
-			return
-		}
-
-		var offer models.Offer
-		if err := db.Where("id = ?", id).First(&offer).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Offer not found"})
-				return
-			}
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if err := db.Delete(&offer).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		// Create notification for store
-		notification := models.Notification{
-			UserID:  offer.StoreID, // Store notification
-			OfferID: offer.ID,
-			Message: fmt.Sprintf("Offer %d canceled", offer.ID),
-		}
-		db.Create(&notification)
-
-		c.JSON(http.StatusCreated, offer)
+	// Create notification for store
+	notification := models.Notification{
+		UserID:  offer.StoreID, // Store notification
+		OfferID: offer.ID,
+		Message: fmt.Sprintf("Offer %d canceled", offer.ID),
 	}
+	//h.notifyRepo.Create(&notification) TODO: после добавления уведомлений
+
+	c.JSON(http.StatusCreated, offer)
 }
