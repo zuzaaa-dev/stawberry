@@ -11,7 +11,7 @@ type offerRepository struct {
 	db *gorm.DB
 }
 
-func NewOfferRepository(db *gorm.DB) OfferRepository {
+func NewOfferRepository(db *gorm.DB) *offerRepository {
 	return &offerRepository{db: db}
 }
 

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -47,12 +46,12 @@ func (h *OfferHandlers) CreateOffer(c *gin.Context) {
 	}
 
 	// Create notification for store
-	notification := models.Notification{
-		UserID:  offer.StoreID, // Store notification
-		OfferID: offer.ID,
-		Message: fmt.Sprintf("New offer received for product %d", offer.ProductID),
-	}
-	//h.notifyRepo.Create(&notification) TODO: после добавления уведомлений
+	// notification := models.Notification{
+	// 	UserID:  offer.StoreID, // Store notification
+	// 	OfferID: offer.ID,
+	// 	Message: fmt.Sprintf("New offer received for product %d", offer.ProductID),
+	// }
+	// h.notifyRepo.Create(&notification)
 
 	c.JSON(http.StatusCreated, offer)
 }
@@ -60,7 +59,7 @@ func (h *OfferHandlers) CreateOffer(c *gin.Context) {
 func (h *OfferHandlers) GetUserOffers(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
-	//TODO:надо вынести в pkg/utils/paginators.go или что то подобное
+	//надо вынести в pkg/utils/paginators.go или что то подобное
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
@@ -140,12 +139,12 @@ func (h *OfferHandlers) UpdateOfferStatus(c *gin.Context) {
 	}
 
 	// Create notification for store
-	notification := models.Notification{
-		UserID:  offer.StoreID, // Store notification
-		OfferID: offer.ID,
-		Message: fmt.Sprintf("Offer %d has changed status to %s", offer.ID, offer.Status),
-	}
-	//h.notifyRepo.Create(&notification) TODO: после добавления уведомлений
+	// notification := models.Notification{
+	// 	UserID:  offer.StoreID, // Store notification
+	// 	OfferID: offer.ID,
+	// 	Message: fmt.Sprintf("Offer %d has changed status to %s", offer.ID, offer.Status),
+	// }
+	// h.notifyRepo.Create(&notification)
 
 	c.JSON(http.StatusCreated, offer)
 }
@@ -168,12 +167,12 @@ func (h *OfferHandlers) CancelOffer(c *gin.Context) {
 	}
 
 	// Create notification for store
-	notification := models.Notification{
-		UserID:  offer.StoreID, // Store notification
-		OfferID: offer.ID,
-		Message: fmt.Sprintf("Offer %d canceled", offer.ID),
-	}
-	//h.notifyRepo.Create(&notification) TODO: после добавления уведомлений
+	// notification := models.Notification{
+	// 	UserID:  offer.StoreID, // Store notification
+	// 	OfferID: offer.ID,
+	// 	Message: fmt.Sprintf("Offer %d canceled", offer.ID),
+	// }
+	// h.notifyRepo.Create(&notification)
 
 	c.JSON(http.StatusCreated, offer)
 }
