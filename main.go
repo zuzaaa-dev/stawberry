@@ -85,19 +85,19 @@ func setupRouter(db *gorm.DB) *gin.Engine {
 			//protected.PUT("/profile", handlers.UpdateProfile(db))
 
 			// Store management
-			stores := protected.Group("/stores")
+			//stores := protected.Group("/stores")
 			{
 				//stores.GET("/:id", handlers.GetStore(db))
-				stores.GET("/:id/products", handlers.GetStoreProducts(db))
+				//stores.GET("/:id/products", handlers.GetStoreProducts(db))
 			}
 
 			// Product management
-			products := protected.Group("/products")
+			//products := protected.Group("/products")
 			{
-				products.GET("", handlers.GetProducts(db))
-				products.GET("/:id", handlers.GetProduct(db))
-				products.PUT("/:id", handlers.UpdateProduct(db))
-				products.POST("", handlers.AddProduct(db))
+				//products.GET("", handlers.GetProducts(db))
+				//products.GET("/:id", handlers.GetProduct(db))
+				//products.PUT("/:id", handlers.UpdateProduct(db))
+				//products.POST("", handlers.AddProduct(db))
 			}
 
 			// Offer management
