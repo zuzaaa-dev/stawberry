@@ -8,6 +8,7 @@ type OfferRepository interface {
 	GetOffer(offerID uint) (*models.Offer, error)
 	UpdateOfferStatus(offerID uint, status string) (*models.Offer, error)
 	DeleteOffer(offerID uint) (*models.Offer, error)
+}
 
 type ProductRepositoryInf interface {
 	CreateProduct(product *models.Product) error
