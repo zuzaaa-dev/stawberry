@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	objectstorage "marketplace/s3"
 	"net/http"
 	"os"
 	"os/signal"
@@ -38,14 +39,17 @@ func initializeApp() error {
 	// Initialize database connection
 	db = database.InitDB(cfg)
 
+	// Initialize object storage s3
+	s3 := objectstorage.ObjectStorageConn(cfg)
+
 	// Initialize router
-	router = setupRouter(db)
+	router = setupRouter(db, s3)
 
 	return nil
 }
 
 // setupRouter configures the Gin router with all routes and middleware
-func setupRouter(db *gorm.DB) *gin.Engine {
+func setupRouter(db *gorm.DB, s3 *objectstorage.BucketBasics) *gin.Engine {
 	router := gin.New()
 
 	// Add default middleware
