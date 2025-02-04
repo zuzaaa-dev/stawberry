@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/zuzaaa-dev/stawberry/internal/repository"
 	"log"
 	"os"
+
+	"github.com/zuzaaa-dev/stawberry/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/internal/app"

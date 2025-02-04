@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/product"
 	"math"
 	"net/http"
 	"strconv"
+
+	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/product"
 
 	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
 
@@ -44,7 +45,7 @@ func (h *productHandler) PostProduct(c *gin.Context) {
 	var response dto.PostProductResp
 	var err error
 	if response.ID, err = h.productService.CreateProduct(postProductReq.ConvertToSvc()); err != nil {
-		handleError(c, err)
+		handleProductError(c, err)
 		return
 	}
 
@@ -56,7 +57,7 @@ func (h *productHandler) GetProduct(c *gin.Context) {
 
 	product, err := h.productService.GetProductByID(id)
 	if err != nil {
-		handleError(c, err)
+		handleProductError(c, err)
 		return
 	}
 
@@ -86,7 +87,7 @@ func (h *productHandler) GetProducts(c *gin.Context) {
 
 	products, total, err := h.productService.GetProducts(offset, limit)
 	if err != nil {
-		handleError(c, err)
+		handleProductError(c, err)
 		return
 	}
 
@@ -128,7 +129,7 @@ func (h *productHandler) GetStoreProducts(c *gin.Context) {
 
 	products, total, err := h.productService.GetStoreProducts(id, offset, limit)
 	if err != nil {
-		handleError(c, err)
+		handleProductError(c, err)
 		return
 	}
 
@@ -159,7 +160,7 @@ func (h *productHandler) PatchProduct(c *gin.Context) {
 	}
 
 	if err := h.productService.UpdateProduct(id, update.ConvertToSvc()); err != nil {
-		handleError(c, err)
+		handleProductError(c, err)
 		return
 	}
 

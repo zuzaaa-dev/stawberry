@@ -2,6 +2,9 @@ package repository
 
 import (
 	"errors"
+
+	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
+
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
 
@@ -20,7 +23,18 @@ func NewOfferRepository(db *gorm.DB) *offerRepository {
 func (r *offerRepository) InsertOffer(offer offer.Offer) (uint, error) {
 	offerModel := model.ConvertOfferFromSvc(offer)
 	if err := r.db.Create(&offerModel).Error; err != nil {
-		return 0, err
+		if isDuplicateError(err) {
+			return 0, &apperror.OfferError{
+				Code:    apperror.DuplicateError,
+				Message: "offer with this id already exists",
+				Err:     err,
+			}
+		}
+		return 0, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "offer to create product",
+			Err:     err,
+		}
 	}
 
 	return offer.ID, nil
@@ -29,7 +43,14 @@ func (r *offerRepository) InsertOffer(offer offer.Offer) (uint, error) {
 func (r *offerRepository) GetOfferByID(offerID uint) (entity.Offer, error) {
 	var offer entity.Offer
 	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
-		return entity.Offer{}, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entity.Offer{}, apperror.ErrOfferNotFound
+		}
+		return entity.Offer{}, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to get offer",
+			Err:     err,
+		}
 	}
 
 	return offer, nil
@@ -38,29 +59,48 @@ func (r *offerRepository) GetOfferByID(offerID uint) (entity.Offer, error) {
 func (r *offerRepository) SelectUserOffers(userID uint, limit, offset int) ([]entity.Offer, int64, error) {
 	var total int64
 	if err := r.db.Model(&model.Offer{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
-		return nil, 0, err
+		return nil, 0, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to count user offers",
+			Err:     err,
+		}
 	}
 
 	var offers []entity.Offer
-	if err := r.db.Offset(offset).Limit(limit).Find(&offers).Error; err != nil {
-		return nil, 0, err
+	if err := r.db.Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&offers).Error; err != nil {
+		return nil, 0, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to fetch user offers",
+			Err:     err,
+		}
 	}
 
 	return offers, total, nil
 }
 
 func (r *offerRepository) UpdateOfferStatus(offerID uint, status string) (entity.Offer, error) {
-	result := r.db.Model(&model.Offer{}).Where("id = ?", offerID).Update("status", status)
-	if result.Error != nil {
-		return entity.Offer{}, result.Error
+	tx := r.db.Model(&model.Offer{}).Where("id = ?", offerID).Update("status", status)
+	if tx.Error != nil {
+		return entity.Offer{}, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to update offer status",
+			Err:     tx.Error,
+		}
 	}
-	if result.RowsAffected == 0 {
-		return entity.Offer{}, errors.New("Offer not found") // изменю хэндлинг ошибок после апрува хэндлинга Артема
+	if tx.RowsAffected == 0 {
+		return entity.Offer{}, apperror.ErrOfferNotFound
 	}
 
 	var offer entity.Offer
 	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
-		return entity.Offer{}, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entity.Offer{}, apperror.ErrOfferNotFound
+		}
+		return entity.Offer{}, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to get updated offer",
+			Err:     err,
+		}
 	}
 
 	return offer, nil
@@ -69,12 +109,23 @@ func (r *offerRepository) UpdateOfferStatus(offerID uint, status string) (entity
 func (r *offerRepository) DeleteOffer(offerID uint) (entity.Offer, error) {
 	var offer entity.Offer
 	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
-		return entity.Offer{}, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entity.Offer{}, apperror.ErrOfferNotFound
+		}
+		return entity.Offer{}, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to get offer for deletion",
+			Err:     err,
+		}
 	}
 
 	if err := r.db.Delete(&offer).Error; err != nil {
-		return entity.Offer{}, err
+		return entity.Offer{}, &apperror.OfferError{
+			Code:    apperror.DatabaseError,
+			Message: "failed to delete offer",
+			Err:     err,
+		}
 	}
 
-	return entity.Offer{}, nil
+	return offer, nil
 }

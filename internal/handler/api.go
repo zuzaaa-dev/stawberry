@@ -94,7 +94,7 @@ func SetupRouter(
 	return router
 }
 
-func handleError(c *gin.Context, err error) {
+func handleProductError(c *gin.Context, err error) {
 	var productErr *apperror.ProductError
 	if errors.As(err, &productErr) {
 		status := http.StatusInternalServerError
@@ -111,6 +111,33 @@ func handleError(c *gin.Context, err error) {
 		c.JSON(status, gin.H{
 			"code":    productErr.Code,
 			"message": productErr.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code":    apperror.InternalError,
+		"message": "An unexpected error occurred",
+	})
+}
+
+func handleOfferError(c *gin.Context, err error) {
+	var offerError *apperror.OfferError
+	if errors.As(err, &offerError) {
+		status := http.StatusInternalServerError
+
+		switch offerError.Code {
+		case apperror.NotFound:
+			status = http.StatusNotFound
+		case apperror.DuplicateError:
+			status = http.StatusConflict
+		case apperror.DatabaseError:
+			status = http.StatusInternalServerError
+		}
+
+		c.JSON(status, gin.H{
+			"code":    offerError.Code,
+			"message": offerError.Message,
 		})
 		return
 	}

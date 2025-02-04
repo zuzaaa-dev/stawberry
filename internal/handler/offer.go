@@ -1,17 +1,16 @@
 package handler
 
 import (
-	"errors"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
+
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/internal/handler/dto"
-	"gorm.io/gorm"
 )
 
 type OfferService interface {
@@ -22,7 +21,6 @@ type OfferService interface {
 	DeleteOffer(offerID uint) (entity.Offer, error)
 }
 
-// Здесь надо по-новому ошибки обработать как в product
 type offerHandler struct {
 	offerService OfferService
 }
@@ -47,7 +45,7 @@ func (h *offerHandler) PostOffer(c *gin.Context) {
 	var response dto.PostOfferResp
 	var err error
 	if response.ID, err = h.offerService.CreateOffer(offer.ConvertToSvc()); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		handleOfferError(c, err)
 		return
 	}
 
@@ -85,7 +83,7 @@ func (h *offerHandler) GetUserOffers(c *gin.Context) {
 
 	offers, total, err := h.offerService.GetUserOffers(userID.(uint), offset, limit)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		handleOfferError(c, err)
 		return
 	}
 
@@ -111,11 +109,7 @@ func (h *offerHandler) GetOffer(c *gin.Context) {
 
 	offer, err := h.offerService.GetOffer(uint(id))
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Offer not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+		handleOfferError(c, err)
 		return
 	}
 
@@ -140,7 +134,7 @@ func (h *offerHandler) PatchOfferStatus(c *gin.Context) {
 
 	offer, err := h.offerService.UpdateOfferStatus(uint(id), req.Status)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		handleOfferError(c, err)
 		return
 	}
 
@@ -164,12 +158,7 @@ func (h *offerHandler) DeleteOffer(c *gin.Context) {
 
 	offer, err := h.offerService.DeleteOffer(uint(id))
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Offer not found"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		handleOfferError(c, err)
 	}
 
 	// Create notification for store

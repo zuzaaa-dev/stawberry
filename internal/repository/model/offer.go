@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"time"
+
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 )
 
 type Offer struct {

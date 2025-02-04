@@ -2,9 +2,10 @@ package repository
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/product"
 	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
-	"strings"
 
 	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
 
@@ -79,18 +80,6 @@ func (r *productRepository) SelectProducts(offset, limit int) ([]entity.Product,
 }
 
 func (r *productRepository) SelectStoreProducts(id string, offset, limit int) ([]entity.Product, int, error) {
-	var exists bool
-	if err := r.db.Model(&model.Store{}).Where("id = ?", id).Select("1").Scan(&exists).Error; err != nil {
-		return nil, 0, &apperror.ProductError{
-			Code:    apperror.DatabaseError,
-			Message: "failed to check store existence",
-			Err:     err,
-		}
-	}
-	if !exists {
-		return nil, 0, apperror.ErrStoreNotFound
-	}
-
 	var total int64
 	if err := r.db.Model(&model.Product{}).Where("store_id = ?", id).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
@@ -115,7 +104,6 @@ func (r *productRepository) SelectStoreProducts(id string, offset, limit int) ([
 func (r *productRepository) UpdateProduct(id string, update product.UpdateProduct) error {
 	updateModel := model.ConvertUpdateProductFromSvc(update)
 	tx := r.db.Model(&model.Product{}).Where("id = ?", id).Updates(updateModel)
-
 	if tx.Error != nil {
 		if isDuplicateError(tx.Error) {
 			return &apperror.ProductError{

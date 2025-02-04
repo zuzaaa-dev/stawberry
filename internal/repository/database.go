@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
 	"log"
+
+	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
 
 	"github.com/zuzaaa-dev/stawberry/internal/config"
 	"gorm.io/driver/postgres"
