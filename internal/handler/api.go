@@ -5,8 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	error2 "github.com/zuzaaa-dev/stawberry/internal/app/apperror"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service"
+	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
 	"github.com/zuzaaa-dev/stawberry/internal/handler/middleware"
 	objectstorage "github.com/zuzaaa-dev/stawberry/pkg/s3"
 
@@ -14,8 +13,8 @@ import (
 )
 
 func SetupRouter(
-	productService service.ProductService,
-	offerService service.OfferService,
+	productService ProductService,
+	offerService OfferService,
 	s3 *objectstorage.BucketBasics,
 ) *gin.Engine {
 	router := gin.New()
@@ -96,16 +95,16 @@ func SetupRouter(
 }
 
 func handleError(c *gin.Context, err error) {
-	var productErr *error2.ProductError
+	var productErr *apperror.ProductError
 	if errors.As(err, &productErr) {
 		status := http.StatusInternalServerError
 
 		switch productErr.Code {
-		case error2.NotFound:
+		case apperror.NotFound:
 			status = http.StatusNotFound
-		case error2.DuplicateError:
+		case apperror.DuplicateError:
 			status = http.StatusConflict
-		case error2.DatabaseError:
+		case apperror.DatabaseError:
 			status = http.StatusInternalServerError
 		}
 
@@ -117,7 +116,7 @@ func handleError(c *gin.Context, err error) {
 	}
 
 	c.JSON(http.StatusInternalServerError, gin.H{
-		"code":    error2.InternalError,
+		"code":    apperror.InternalError,
 		"message": "An unexpected error occurred",
 	})
 }

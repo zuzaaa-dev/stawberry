@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"time"
 )
 
@@ -16,4 +17,18 @@ type Offer struct {
 	UpdatedAt time.Time
 	Product   Product `gorm:"foreignKey:ProductID"`
 	Store     Store   `gorm:"foreignKey:StoreID"`
+}
+
+func ConvertOfferFromSvc(offer offer.Offer) Offer {
+	return Offer{
+		ID:        offer.ID,
+		UserID:    offer.UserID,
+		ProductID: offer.ProductID,
+		StoreID:   offer.StoreID,
+		Price:     offer.Price,
+		Status:    offer.Status,
+		ExpiresAt: offer.ExpiresAt,
+		CreatedAt: offer.CreatedAt,
+		UpdatedAt: offer.UpdatedAt,
+	}
 }

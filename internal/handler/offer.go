@@ -2,27 +2,36 @@ package handler
 
 import (
 	"errors"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service"
 	"github.com/zuzaaa-dev/stawberry/internal/handler/dto"
 	"gorm.io/gorm"
 )
 
+type OfferService interface {
+	CreateOffer(offer offer.Offer) (uint, error)
+	GetUserOffers(userID uint, limit, offset int) ([]entity.Offer, int64, error)
+	GetOffer(offerID uint) (entity.Offer, error)
+	UpdateOfferStatus(offerID uint, status string) (entity.Offer, error)
+	DeleteOffer(offerID uint) (entity.Offer, error)
+}
+
 // Здесь надо по-новому ошибки обработать как в product
-type OfferHandlers struct {
-	offerService service.OfferService
+type offerHandler struct {
+	offerService OfferService
 }
 
-func NewOfferHandler(offerService service.OfferService) *OfferHandlers {
-	return &OfferHandlers{offerService: offerService}
+func NewOfferHandler(offerService OfferService) *offerHandler {
+	return &offerHandler{offerService: offerService}
 }
 
-func (h *OfferHandlers) PostOffer(c *gin.Context) {
+func (h *offerHandler) PostOffer(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
 	var offer dto.PostOfferReq
@@ -53,7 +62,7 @@ func (h *OfferHandlers) PostOffer(c *gin.Context) {
 	c.JSON(http.StatusCreated, offer)
 }
 
-func (h *OfferHandlers) GetUserOffers(c *gin.Context) {
+func (h *offerHandler) GetUserOffers(c *gin.Context) {
 	userID, ok := c.Get("userID")
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UserID"})
@@ -93,7 +102,7 @@ func (h *OfferHandlers) GetUserOffers(c *gin.Context) {
 	})
 }
 
-func (h *OfferHandlers) GetOffer(c *gin.Context) {
+func (h *offerHandler) GetOffer(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid non digit offer id"})
@@ -115,7 +124,7 @@ func (h *OfferHandlers) GetOffer(c *gin.Context) {
 	})
 }
 
-func (h *OfferHandlers) UpdateOfferStatus(c *gin.Context) {
+func (h *offerHandler) PatchOfferStatus(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})
@@ -146,7 +155,7 @@ func (h *OfferHandlers) UpdateOfferStatus(c *gin.Context) {
 	c.JSON(http.StatusCreated, offer)
 }
 
-func (h *OfferHandlers) CancelOffer(c *gin.Context) {
+func (h *offerHandler) DeleteOffer(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid nondigit offer id"})

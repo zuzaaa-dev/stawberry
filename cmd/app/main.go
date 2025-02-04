@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/zuzaaa-dev/stawberry/internal/repository"
 	"log"
 	"os"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/product"
 	"github.com/zuzaaa-dev/stawberry/internal/handler"
-	"github.com/zuzaaa-dev/stawberry/internal/repository"
 	objectstorage "github.com/zuzaaa-dev/stawberry/pkg/s3"
 )
 
