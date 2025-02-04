@@ -1,13 +1,13 @@
-package database
+package repository
 
 import (
 	"log"
 
+	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
+
+	"github.com/zuzaaa-dev/stawberry/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	"marketplace/config"
-	"marketplace/models"
 )
 
 func InitDB(cfg *config.Config) *gorm.DB {
@@ -18,11 +18,11 @@ func InitDB(cfg *config.Config) *gorm.DB {
 
 	// Auto migrate schemas
 	err = db.AutoMigrate(
-		&models.User{},
-		&models.Store{},
-		&models.Product{},
-		&models.Offer{},
-		&models.Notification{},
+		&model.User{},
+		&model.Store{},
+		&model.Product{},
+		&model.Offer{},
+		&model.Notification{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)

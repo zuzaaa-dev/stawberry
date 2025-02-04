@@ -9,6 +9,5 @@ linters:
     - godox # tool for detection of F*IXME, T*ODO and other comment keywords
     - gofmt # checks if the code is formatted according to 'gofmt' command
     - goimports # Checks if the code and import statements are formatted according to the 'goimports' command
-    - ireturn # accept Interfaces, Return Concrete Types
     - lll # reports long lines
     - rowserrcheck # checks whether Rows.Err of rows is checked successfully
