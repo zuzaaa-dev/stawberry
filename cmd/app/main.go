@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/zuzaaa-dev/stawberry/internal/repository"
+	"github.com/zuzaaa-dev/stawberry/migrator"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/internal/app"
@@ -50,6 +51,10 @@ func initializeApp() error {
 
 	// Initialize database connection
 	db := repository.InitDB(cfg)
+
+	// Run migrations
+	migrator.RunMigrations(db, "migrations")
+
 	productRepository := repository.NewProductRepository(db)
 	offerRepository := repository.NewOfferRepository(db)
 
