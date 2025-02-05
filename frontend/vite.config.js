@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:8080', // Adjust the backend server URL and port as needed
+      '/api': 'http://localhost:8080',
     },
   },
 });

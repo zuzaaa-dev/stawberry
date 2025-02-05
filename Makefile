@@ -7,9 +7,9 @@ gofmt:
 	goimports -w .
 .PHONY:gofmt
 
-// Frontend
+# Frontend
 npm-install:
 	cd frontend && npm install
 
 npm-run:
-	npm run dev
+	cd frontend && npm run dev
