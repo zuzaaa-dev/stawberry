@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zuzaaa-dev/stawberry/internal/config"
+	"github.com/zuzaaa-dev/stawberry/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	sdkConfig "github.com/aws/aws-sdk-go-v2/config"
@@ -29,7 +29,7 @@ func ObjectStorageConn(cfg *config.Config) *BucketBasics {
 		sdkConfig.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
 			return aws.Credentials{
 				AccessKeyID:     cfg.AccessKey,
-				SecretAccessKey: cfg.SecretKEY,
+				SecretAccessKey: cfg.SecretKey,
 			}, nil
 		})),
 		sdkConfig.WithEndpointResolver(aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {

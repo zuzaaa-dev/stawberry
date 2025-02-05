@@ -8,8 +8,8 @@ import (
 	"github.com/zuzaaa-dev/stawberry/migrator"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zuzaaa-dev/stawberry/config"
 	"github.com/zuzaaa-dev/stawberry/internal/app"
-	"github.com/zuzaaa-dev/stawberry/internal/config"
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/product"
 	"github.com/zuzaaa-dev/stawberry/internal/handler"
