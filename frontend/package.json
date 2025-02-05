@@ -4,6 +4,8 @@
     "@coreui/react": "^5.4.1",
     "@vitejs/plugin-react": "^4.3.4",
     "axios": "^1.7.9",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-router-dom": "^6.3.0"
   },
   "devDependencies": {
