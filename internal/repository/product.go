@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -21,7 +22,7 @@ func NewProductRepository(db *gorm.DB) *productRepository {
 	return &productRepository{db: db}
 }
 
-func (r *productRepository) InsertProduct(product product.Product) (uint, error) {
+func (r *productRepository) InsertProduct(ctx context.Context, product product.Product) (uint, error) {
 	productModel := model.ConvertProductFromSvc(product)
 	if err := r.db.Create(productModel).Error; err != nil {
 		if isDuplicateError(err) {
@@ -41,7 +42,7 @@ func (r *productRepository) InsertProduct(product product.Product) (uint, error)
 	return productModel.ID, nil
 }
 
-func (r *productRepository) GetProductByID(id string) (entity.Product, error) {
+func (r *productRepository) GetProductByID(ctx context.Context, id string) (entity.Product, error) {
 	var productModel model.Product
 	if err := r.db.Where("id = ?", id).First(&productModel).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -57,7 +58,7 @@ func (r *productRepository) GetProductByID(id string) (entity.Product, error) {
 	return model.ConvertProductToEntity(productModel), nil
 }
 
-func (r *productRepository) SelectProducts(offset, limit int) ([]entity.Product, int, error) {
+func (r *productRepository) SelectProducts(ctx context.Context, offset, limit int) ([]entity.Product, int, error) {
 	var total int64
 	if err := r.db.Model(&model.Product{}).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
@@ -79,7 +80,7 @@ func (r *productRepository) SelectProducts(offset, limit int) ([]entity.Product,
 	return products, int(total), nil
 }
 
-func (r *productRepository) SelectStoreProducts(id string, offset, limit int) ([]entity.Product, int, error) {
+func (r *productRepository) SelectStoreProducts(ctx context.Context, id string, offset, limit int) ([]entity.Product, int, error) {
 	var total int64
 	if err := r.db.Model(&model.Product{}).Where("store_id = ?", id).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
@@ -101,7 +102,7 @@ func (r *productRepository) SelectStoreProducts(id string, offset, limit int) ([
 	return products, int(total), nil
 }
 
-func (r *productRepository) UpdateProduct(id string, update product.UpdateProduct) error {
+func (r *productRepository) UpdateProduct(ctx context.Context, id string, update product.UpdateProduct) error {
 	updateModel := model.ConvertUpdateProductFromSvc(update)
 	tx := r.db.Model(&model.Product{}).Where("id = ?", id).Updates(updateModel)
 	if tx.Error != nil {

@@ -147,3 +147,30 @@ func handleOfferError(c *gin.Context, err error) {
 		"message": "An unexpected error occurred",
 	})
 }
+
+func handleUserError(c *gin.Context, err error) {
+	var userError *apperror.UserError
+	if errors.As(err, &userError) {
+		status := http.StatusInternalServerError
+
+		switch userError.Code {
+		case apperror.NotFound:
+			status = http.StatusNotFound
+		case apperror.DuplicateError:
+			status = http.StatusConflict
+		case apperror.DatabaseError:
+			status = http.StatusInternalServerError
+		}
+
+		c.JSON(status, gin.H{
+			"code":    userError.Code,
+			"message": userError.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code":    apperror.InternalError,
+		"message": "An unexpected error occurred",
+	})
+}

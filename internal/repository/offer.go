@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 
 	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
@@ -20,7 +21,7 @@ func NewOfferRepository(db *gorm.DB) *offerRepository {
 	return &offerRepository{db: db}
 }
 
-func (r *offerRepository) InsertOffer(offer offer.Offer) (uint, error) {
+func (r *offerRepository) InsertOffer(ctx context.Context, offer offer.Offer) (uint, error) {
 	offerModel := model.ConvertOfferFromSvc(offer)
 	if err := r.db.Create(&offerModel).Error; err != nil {
 		if isDuplicateError(err) {
@@ -40,7 +41,7 @@ func (r *offerRepository) InsertOffer(offer offer.Offer) (uint, error) {
 	return offer.ID, nil
 }
 
-func (r *offerRepository) GetOfferByID(offerID uint) (entity.Offer, error) {
+func (r *offerRepository) GetOfferByID(ctx context.Context, offerID uint) (entity.Offer, error) {
 	var offer entity.Offer
 	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -56,7 +57,7 @@ func (r *offerRepository) GetOfferByID(offerID uint) (entity.Offer, error) {
 	return offer, nil
 }
 
-func (r *offerRepository) SelectUserOffers(userID uint, limit, offset int) ([]entity.Offer, int64, error) {
+func (r *offerRepository) SelectUserOffers(ctx context.Context, userID uint, limit, offset int) ([]entity.Offer, int64, error) {
 	var total int64
 	if err := r.db.Model(&model.Offer{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.OfferError{
@@ -78,7 +79,7 @@ func (r *offerRepository) SelectUserOffers(userID uint, limit, offset int) ([]en
 	return offers, total, nil
 }
 
-func (r *offerRepository) UpdateOfferStatus(offerID uint, status string) (entity.Offer, error) {
+func (r *offerRepository) UpdateOfferStatus(ctx context.Context, offerID uint, status string) (entity.Offer, error) {
 	tx := r.db.Model(&model.Offer{}).Where("id = ?", offerID).Update("status", status)
 	if tx.Error != nil {
 		return entity.Offer{}, &apperror.OfferError{
@@ -106,7 +107,7 @@ func (r *offerRepository) UpdateOfferStatus(offerID uint, status string) (entity
 	return offer, nil
 }
 
-func (r *offerRepository) DeleteOffer(offerID uint) (entity.Offer, error) {
+func (r *offerRepository) DeleteOffer(ctx context.Context, offerID uint) (entity.Offer, error) {
 	var offer entity.Offer
 	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

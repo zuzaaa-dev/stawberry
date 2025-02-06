@@ -1,15 +1,17 @@
 package offer
 
 import (
+	"context"
+
 	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
 )
 
 type Repository interface {
-	InsertOffer(offer Offer) (uint, error)
-	GetOfferByID(offerID uint) (entity.Offer, error)
-	SelectUserOffers(userID uint, limit, offset int) ([]entity.Offer, int64, error)
-	UpdateOfferStatus(offerID uint, status string) (entity.Offer, error)
-	DeleteOffer(offerID uint) (entity.Offer, error)
+	InsertOffer(ctx context.Context, offer Offer) (uint, error)
+	GetOfferByID(ctx context.Context, offerID uint) (entity.Offer, error)
+	SelectUserOffers(ctx context.Context, userID uint, limit, offset int) ([]entity.Offer, int64, error)
+	UpdateOfferStatus(ctx context.Context, offerID uint, status string) (entity.Offer, error)
+	DeleteOffer(ctx context.Context, offerID uint) (entity.Offer, error)
 }
 
 type offerService struct {
@@ -20,22 +22,22 @@ func NewOfferService(offerRepository Repository) *offerService {
 	return &offerService{offerRepository: offerRepository}
 }
 
-func (os *offerService) CreateOffer(offer Offer) (uint, error) {
-	return os.offerRepository.InsertOffer(offer)
+func (os *offerService) CreateOffer(ctx context.Context, offer Offer) (uint, error) {
+	return os.offerRepository.InsertOffer(ctx, offer)
 }
 
-func (os *offerService) GetOffer(offerID uint) (entity.Offer, error) {
-	return os.offerRepository.GetOfferByID(offerID)
+func (os *offerService) GetOffer(ctx context.Context, offerID uint) (entity.Offer, error) {
+	return os.offerRepository.GetOfferByID(ctx, offerID)
 }
 
-func (os *offerService) GetUserOffers(userID uint, limit, offset int) ([]entity.Offer, int64, error) {
-	return os.offerRepository.SelectUserOffers(userID, limit, offset)
+func (os *offerService) GetUserOffers(ctx context.Context, userID uint, limit, offset int) ([]entity.Offer, int64, error) {
+	return os.offerRepository.SelectUserOffers(ctx, userID, limit, offset)
 }
 
-func (os *offerService) UpdateOfferStatus(offerID uint, status string) (entity.Offer, error) {
-	return os.offerRepository.UpdateOfferStatus(offerID, status)
+func (os *offerService) UpdateOfferStatus(ctx context.Context, offerID uint, status string) (entity.Offer, error) {
+	return os.offerRepository.UpdateOfferStatus(ctx, offerID, status)
 }
 
-func (os *offerService) DeleteOffer(offerID uint) (entity.Offer, error) {
-	return os.offerRepository.DeleteOffer(offerID)
+func (os *offerService) DeleteOffer(ctx context.Context, offerID uint) (entity.Offer, error) {
+	return os.offerRepository.DeleteOffer(ctx, offerID)
 }

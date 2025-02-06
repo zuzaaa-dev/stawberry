@@ -1,15 +1,17 @@
 package product
 
 import (
+	"context"
+
 	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
 )
 
 type Repository interface {
-	InsertProduct(product Product) (uint, error)
-	GetProductByID(id string) (entity.Product, error)
-	SelectProducts(offset, limit int) ([]entity.Product, int, error)
-	SelectStoreProducts(id string, offset, limit int) ([]entity.Product, int, error)
-	UpdateProduct(id string, update UpdateProduct) error
+	InsertProduct(ctx context.Context, product Product) (uint, error)
+	GetProductByID(ctx context.Context, id string) (entity.Product, error)
+	SelectProducts(ctx context.Context, offset, limit int) ([]entity.Product, int, error)
+	SelectStoreProducts(ctx context.Context, id string, offset, limit int) ([]entity.Product, int, error)
+	UpdateProduct(ctx context.Context, id string, update UpdateProduct) error
 }
 
 type productService struct {
@@ -20,22 +22,22 @@ func NewProductService(productRepo Repository) *productService {
 	return &productService{productRepository: productRepo}
 }
 
-func (ps *productService) CreateProduct(product Product) (uint, error) {
-	return ps.productRepository.InsertProduct(product)
+func (ps *productService) CreateProduct(ctx context.Context, product Product) (uint, error) {
+	return ps.productRepository.InsertProduct(ctx, product)
 }
 
-func (ps *productService) GetProductByID(id string) (entity.Product, error) {
-	return ps.productRepository.GetProductByID(id)
+func (ps *productService) GetProductByID(ctx context.Context, id string) (entity.Product, error) {
+	return ps.productRepository.GetProductByID(ctx, id)
 }
 
-func (ps *productService) GetProducts(offset, limit int) ([]entity.Product, int, error) {
-	return ps.productRepository.SelectProducts(offset, limit)
+func (ps *productService) GetProducts(ctx context.Context, offset, limit int) ([]entity.Product, int, error) {
+	return ps.productRepository.SelectProducts(ctx, offset, limit)
 }
 
-func (ps *productService) GetStoreProducts(id string, offset, limit int) ([]entity.Product, int, error) {
-	return ps.productRepository.SelectStoreProducts(id, offset, limit)
+func (ps *productService) GetStoreProducts(ctx context.Context, id string, offset, limit int) ([]entity.Product, int, error) {
+	return ps.productRepository.SelectStoreProducts(ctx, id, offset, limit)
 }
 
-func (ps *productService) UpdateProduct(id string, updateProduct UpdateProduct) error {
-	return ps.productRepository.UpdateProduct(id, updateProduct)
+func (ps *productService) UpdateProduct(ctx context.Context, id string, updateProduct UpdateProduct) error {
+	return ps.productRepository.UpdateProduct(ctx, id, updateProduct)
 }
