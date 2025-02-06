@@ -12,14 +12,14 @@ import (
 )
 
 type UserGetter interface {
-	GetUserByID(ctx context.Context, id string) (entity.User, error)
+	GetUserByID(ctx context.Context, id uint) (entity.User, error)
 }
 
 type TokenValidator interface {
-	ValidateToken(context.Context, string) (string, error)
+	ValidateToken(context.Context, string) (entity.AccessToken, error)
 }
 
-func AuthMiddleware(userGetter UserGetter) gin.HandlerFunc {
+func AuthMiddleware(userGetter UserGetter, validator TokenValidator) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHead := c.GetHeader("Authorization")
 		if authHead == "" {
@@ -40,6 +40,20 @@ func AuthMiddleware(userGetter UserGetter) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		access, err := validator.ValidateToken(c, parts[0])
+		if err != nil {
+			c.Abort()
+			return
+		}
+
+		user, err := userGetter.GetUserByID(context.Background(), access.UserID)
+		if err != nil {
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
 
 		c.Next()
 	}
