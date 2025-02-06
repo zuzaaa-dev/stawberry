@@ -134,7 +134,6 @@ func (h *userHandler) Refresh(c *gin.Context) {
 	setRefreshCookie(c, refreshToken, "", 0)
 
 	c.JSON(http.StatusOK, response)
-
 }
 
 func (h *userHandler) Logout(c *gin.Context) {

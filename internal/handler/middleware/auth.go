@@ -41,41 +41,6 @@ func AuthMiddleware(userGetter UserGetter) gin.HandlerFunc {
 			return
 		}
 
-		//access, err := .tokenInteractor.ParseAccess(accessStr)
-		//if err != nil {
-		//	gs.logger.Error("error", "cause", err.Error())
-		//	code, errDto := handleErr(err)
-		//	c.AbortWithStatusJSON(code, errDto)
-		//	return
-		//}
-		//var roleAllowed bool
-		//for _, role := range allowedRoles {
-		//	if access.UserRole == role {
-		//		roleAllowed = true
-		//		break
-		//	}
-		//}
-		//
-		//if !roleAllowed {
-		//	c.AbortWithStatusJSON(http.StatusForbidden, dtos.ErrorResp{Error: "ROLE_NOT_ALLOWED"})
-		//	return
-		//}
-
-		//user, err := gs.userInteractor.GetByID(context.Background(), access.UserID)
-		//if err != nil {
-		//	gs.logger.Error("error", "cause", err.Error())
-		//	code, errDto := handleErr(err)
-		//	c.AbortWithStatusJSON(code, errDto)
-		//	return
-		//}
-
-		//if !user.IsActive {
-		//	c.AbortWithStatusJSON(http.StatusForbidden, dtos.ErrorResp{Error: "USER_IS_NOT_ACTIVE"})
-		//	return
-		//}
-
-		// c.Set("user", user)
-
 		c.Next()
 	}
 }
