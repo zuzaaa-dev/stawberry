@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE shop_point_inventory (
     shop_point_id INT NOT NULL,
     product_id INT NOT NULL,
@@ -9,3 +11,10 @@ CREATE TABLE shop_point_inventory (
 
 CREATE INDEX idx_shop_point_inventory_shop_point_id ON shop_point_inventory(shop_point_id);
 CREATE INDEX idx_shop_point_inventory_product_id ON shop_point_inventory(product_id);
+
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS shop_point_inventory;
+-- +goose StatementEnd

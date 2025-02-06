@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/zuzaaa-dev/stawberry/internal/repository"
-	"github.com/zuzaaa-dev/stawberry/migrator"
+	"github.com/zuzaaa-dev/stawberry/pkg/migrator"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/internal/app"
