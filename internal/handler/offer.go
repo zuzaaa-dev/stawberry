@@ -26,8 +26,8 @@ type offerHandler struct {
 	offerService OfferService
 }
 
-func NewOfferHandler(offerService OfferService) *offerHandler {
-	return &offerHandler{offerService: offerService}
+func NewOfferHandler(offerService OfferService) offerHandler {
+	return offerHandler{offerService: offerService}
 }
 
 func (h *offerHandler) PostOffer(c *gin.Context) {
