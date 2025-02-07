@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/user"
 	"log"
 	"os"
 	"time"
+
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/user"
 
 	"github.com/zuzaaa-dev/stawberry/internal/repository"
 	"github.com/zuzaaa-dev/stawberry/migrator"
