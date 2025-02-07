@@ -97,7 +97,13 @@ func (e *TokenError) Error() string {
 	return e.Message
 }
 
-var ErrInvalidToken = &TokenError{
-	Code:    InvalidToken,
-	Message: "invalid token",
-}
+var (
+	ErrInvalidToken = &TokenError{
+		Code:    InvalidToken,
+		Message: "invalid token",
+	}
+	ErrTokenNotFound = &TokenError{
+		Code:    NotFound,
+		Message: "token not found",
+	}
+)

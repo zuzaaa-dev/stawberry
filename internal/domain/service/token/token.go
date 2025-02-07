@@ -16,12 +16,24 @@ var signingMethod = jwt.SigningMethodHS256
 
 const expires = time.Hour * 24 * 30
 
-type tokenService struct {
-	jwtSecret string
+type Repository interface {
+	InsertToken(ctx context.Context, token entity.RefreshToken) error
+	GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error)
+	RevokeActivesByUserID(ctx context.Context, userID uint) error
+	GetByUUID(ctx context.Context, uuid string) (entity.RefreshToken, error)
+	Update(ctx context.Context, refresh entity.RefreshToken) (entity.RefreshToken, error)
 }
 
-func NewTokenService(secret string) *tokenService {
-	return &tokenService{jwtSecret: secret}
+type tokenService struct {
+	tokenRepository Repository
+	jwtSecret       string
+}
+
+func NewTokenService(tokenRepo Repository, secret string) *tokenService {
+	return &tokenService{
+		tokenRepository: tokenRepo,
+		jwtSecret:       secret,
+	}
 }
 
 func (ts *tokenService) GenerateTokens(ctx context.Context, fingerprint string, userID uint) (string, entity.RefreshToken, error) {
@@ -74,6 +86,27 @@ func (ts *tokenService) Parse(token string) (entity.AccessToken, error) {
 		IssuedAt:  issuedAt,
 		ExpiresAt: expiresAt,
 	}, nil
+}
+
+func (ts *tokenService) InsertToken(ctx context.Context, token entity.RefreshToken) error {
+	return ts.tokenRepository.InsertToken(ctx, token)
+}
+
+func (ts *tokenService) GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error) 
+func (ts *tokenService) GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error) {
+	return ts.tokenRepository.GetActivesTokenByUserID(ctx, userID)
+o
+}
+func (ts *tokenService) RevokeActivesByUserID(ctx context.Context, userID uint) error {
+	return ts.tokenRepository.RevokeActivesByUserID(ctx, userID)
+k
+}
+func (ts *tokenService) GetByUUID(ctx context.Context, uuid string) (entity.RefreshToken, error) {
+	return ts.tokenRepository.GetByUUID(ctx, uuid)
+r
+}
+func (ts *tokenService) Update(ctx context.Context, refresh entity.RefreshToken) (entity.RefreshToken, error) {
+	return ts.tokenRepository.Update(ctx, refresh)
 }
 
 func generateJWT(userID uint, secret string, duration time.Duration) (string, error) {

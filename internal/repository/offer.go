@@ -23,7 +23,7 @@ func NewOfferRepository(db *gorm.DB) *offerRepository {
 
 func (r *offerRepository) InsertOffer(ctx context.Context, offer offer.Offer) (uint, error) {
 	offerModel := model.ConvertOfferFromSvc(offer)
-	if err := r.db.Create(&offerModel).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&offerModel).Error; err != nil {
 		if isDuplicateError(err) {
 			return 0, &apperror.OfferError{
 				Code:    apperror.DuplicateError,
@@ -43,7 +43,7 @@ func (r *offerRepository) InsertOffer(ctx context.Context, offer offer.Offer) (u
 
 func (r *offerRepository) GetOfferByID(ctx context.Context, offerID uint) (entity.Offer, error) {
 	var offer entity.Offer
-	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", offerID).First(&offer).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity.Offer{}, apperror.ErrOfferNotFound
 		}
@@ -59,7 +59,7 @@ func (r *offerRepository) GetOfferByID(ctx context.Context, offerID uint) (entit
 
 func (r *offerRepository) SelectUserOffers(ctx context.Context, userID uint, limit, offset int) ([]entity.Offer, int64, error) {
 	var total int64
-	if err := r.db.Model(&model.Offer{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&model.Offer{}).Where("user_id = ?", userID).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.OfferError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to count user offers",
@@ -68,7 +68,7 @@ func (r *offerRepository) SelectUserOffers(ctx context.Context, userID uint, lim
 	}
 
 	var offers []entity.Offer
-	if err := r.db.Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&offers).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("user_id = ?", userID).Offset(offset).Limit(limit).Find(&offers).Error; err != nil {
 		return nil, 0, &apperror.OfferError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to fetch user offers",
@@ -80,7 +80,7 @@ func (r *offerRepository) SelectUserOffers(ctx context.Context, userID uint, lim
 }
 
 func (r *offerRepository) UpdateOfferStatus(ctx context.Context, offerID uint, status string) (entity.Offer, error) {
-	tx := r.db.Model(&model.Offer{}).Where("id = ?", offerID).Update("status", status)
+	tx := r.db.WithContext(ctx).Model(&model.Offer{}).Where("id = ?", offerID).Update("status", status)
 	if tx.Error != nil {
 		return entity.Offer{}, &apperror.OfferError{
 			Code:    apperror.DatabaseError,
@@ -93,7 +93,7 @@ func (r *offerRepository) UpdateOfferStatus(ctx context.Context, offerID uint, s
 	}
 
 	var offer entity.Offer
-	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", offerID).First(&offer).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity.Offer{}, apperror.ErrOfferNotFound
 		}
@@ -109,7 +109,7 @@ func (r *offerRepository) UpdateOfferStatus(ctx context.Context, offerID uint, s
 
 func (r *offerRepository) DeleteOffer(ctx context.Context, offerID uint) (entity.Offer, error) {
 	var offer entity.Offer
-	if err := r.db.Where("id = ?", offerID).First(&offer).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", offerID).First(&offer).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return entity.Offer{}, apperror.ErrOfferNotFound
 		}
@@ -120,7 +120,7 @@ func (r *offerRepository) DeleteOffer(ctx context.Context, offerID uint) (entity
 		}
 	}
 
-	if err := r.db.Delete(&offer).Error; err != nil {
+	if err := r.db.WithContext(ctx).Delete(&offer).Error; err != nil {
 		return entity.Offer{}, &apperror.OfferError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to delete offer",

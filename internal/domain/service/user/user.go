@@ -22,7 +22,7 @@ type Repository interface {
 
 type TokenService interface {
 	GenerateTokens(ctx context.Context, fingerprint string, userID uint) (string, entity.RefreshToken, error)
-	InsertToken(ctx context.Context, token string) error
+	InsertToken(ctx context.Context, token entity.RefreshToken) error
 	GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error)
 	RevokeActivesByUserID(ctx context.Context, userID uint) error
 	GetByUUID(ctx context.Context, uuid string) (entity.RefreshToken, error)
@@ -57,7 +57,7 @@ func (us *userService) CreateUser(ctx context.Context, user User, fingerprint st
 		return "", "", err
 	}
 
-	if err = us.tokenService.InsertToken(ctx, refreshToken.UUID.String()); err != nil {
+	if err = us.tokenService.InsertToken(ctx, refreshToken); err != nil {
 		return "", "", err
 	}
 
@@ -95,7 +95,7 @@ func (us *userService) Authenticate(ctx context.Context, email, password, finger
 		return "", "", err
 	}
 
-	if err = us.tokenService.InsertToken(ctx, refreshToken.UUID.String()); err != nil {
+	if err = us.tokenService.InsertToken(ctx, refreshToken); err != nil {
 		return "", "", err
 	}
 
@@ -134,7 +134,7 @@ func (us *userService) Refresh(ctx context.Context, refreshToken, fingerprint st
 		return "", "", err
 	}
 
-	err = us.tokenService.InsertToken(ctx, refresh.UUID.String())
+	err = us.tokenService.InsertToken(ctx, refresh)
 	if err != nil {
 		return "", "", err
 	}
