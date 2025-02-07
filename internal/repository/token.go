@@ -18,35 +18,48 @@ func NewTokenRepository(db *gorm.DB) *tokenRepository {
 	return &tokenRepository{db: db}
 }
 
-func (r *tokenRepository) InsertToken(ctx context.Context, token entity.RefreshToken) error {
+func (r *tokenRepository) InsertToken(
+	ctx context.Context,
+	token entity.RefreshToken,
+) error {
 	tokenModel := model.ConvertTokenFromEntity(token)
-	if err := r.db.WithContext(ctx).Create(tokenModel).Error; err != nil {
-		if isDuplicateError(err) {
-			return &apperror.ProductError{
+
+	result := r.db.WithContext(ctx).Create(tokenModel)
+
+	if result.Error != nil {
+		if isDuplicateError(result.Error) {
+			return &apperror.TokenError{
 				Code:    apperror.DuplicateError,
 				Message: "token with this uuid already exists",
-				Err:     err,
+				Err:     result.Error,
 			}
 		}
-		return &apperror.ProductError{
+
+		return &apperror.TokenError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to create token",
-			Err:     err,
+			Err:     result.Error,
 		}
 	}
 
 	return nil
 }
 
-func (r *tokenRepository) GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error) {
+func (r *tokenRepository) GetActivesTokenByUserID(
+	ctx context.Context,
+	userID uint,
+) ([]entity.RefreshToken, error) {
 	var tokensModel []model.RefreshToken
-	if err := r.db.WithContext(ctx).
+
+	result := r.db.WithContext(ctx).
 		Where("user_id = ?", userID).
-		Find(&tokensModel).Error; err != nil {
+		Find(&tokensModel)
+
+	if result.Error != nil {
 		return nil, &apperror.TokenError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to fetch user tokens",
-			Err:     err,
+			Err:     result.Error,
 		}
 	}
 
@@ -58,7 +71,10 @@ func (r *tokenRepository) GetActivesTokenByUserID(ctx context.Context, userID ui
 	return tokens, nil
 }
 
-func (r *tokenRepository) RevokeActivesByUserID(ctx context.Context, userID uint) error {
+func (r *tokenRepository) RevokeActivesByUserID(
+	ctx context.Context,
+	userID uint,
+) error {
 	result := r.db.WithContext(ctx).
 		Model(&model.RefreshToken{}).
 		Where("user_id = ? AND revoked_at IS NULL", userID).
@@ -79,25 +95,35 @@ func (r *tokenRepository) RevokeActivesByUserID(ctx context.Context, userID uint
 	return nil
 }
 
-func (r *tokenRepository) GetByUUID(ctx context.Context, uuid string) (entity.RefreshToken, error) {
+func (r *tokenRepository) GetByUUID(
+	ctx context.Context,
+	uuid string,
+) (entity.RefreshToken, error) {
 	var tokenModel model.RefreshToken
-	if err := r.db.WithContext(ctx).
+
+	result := r.db.WithContext(ctx).
 		Where("uuid = ?", uuid).
-		First(&tokenModel).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entity.RefreshToken{}, apperror.ErrInvalidToken
+		First(&tokenModel)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return entity.RefreshToken{}, apperror.ErrTokenNotFound
 		}
+
 		return entity.RefreshToken{}, &apperror.TokenError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to fetch token by uuid",
-			Err:     err,
+			Err:     result.Error,
 		}
 	}
 
 	return model.ConvertTokenToEntity(tokenModel), nil
 }
 
-func (r *tokenRepository) Update(ctx context.Context, refresh entity.RefreshToken) (entity.RefreshToken, error) {
+func (r *tokenRepository) Update(
+	ctx context.Context,
+	refresh entity.RefreshToken,
+) (entity.RefreshToken, error) {
 	refreshModel := model.ConvertTokenFromEntity(refresh)
 
 	result := r.db.WithContext(ctx).

@@ -16,7 +16,7 @@ type UserGetter interface {
 }
 
 type TokenValidator interface {
-	ValidateToken(context.Context, string) (entity.AccessToken, error)
+	ValidateToken(ctx context.Context, token string) (entity.AccessToken, error)
 }
 
 func AuthMiddleware(userGetter UserGetter, validator TokenValidator) gin.HandlerFunc {
@@ -41,14 +41,22 @@ func AuthMiddleware(userGetter UserGetter, validator TokenValidator) gin.Handler
 			return
 		}
 
-		access, err := validator.ValidateToken(c, parts[0])
+		access, err := validator.ValidateToken(c, parts[1])
 		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    apperror.Unauthorized,
+				"message": "Invalid or expired token",
+			})
 			c.Abort()
 			return
 		}
 
 		user, err := userGetter.GetUserByID(context.Background(), access.UserID)
 		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    apperror.Unauthorized,
+				"message": "User not found",
+			})
 			c.Abort()
 			return
 		}

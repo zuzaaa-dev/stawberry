@@ -38,7 +38,11 @@ func NewUserService(userRepo Repository) *userService {
 	return &userService{userRepository: userRepo}
 }
 
-func (us *userService) CreateUser(ctx context.Context, user User, fingerprint string) (string, string, error) {
+func (us *userService) CreateUser(
+	ctx context.Context,
+	user User,
+	fingerprint string,
+) (string, string, error) {
 	hash, err := security.HashArgon2id(user.Password)
 	if err != nil {
 		appError := apperror.ErrFailedToGeneratePassword
@@ -64,7 +68,12 @@ func (us *userService) CreateUser(ctx context.Context, user User, fingerprint st
 	return accessToken, refreshToken.UUID.String(), nil
 }
 
-func (us *userService) Authenticate(ctx context.Context, email, password, fingerprint string) (string, string, error) {
+func (us *userService) Authenticate(
+	ctx context.Context,
+	email,
+	password,
+	fingerprint string,
+) (string, string, error) {
 	user, err := us.userRepository.GetUser(ctx, email)
 	if err != nil {
 		return "", "", apperror.ErrUserNotFound
@@ -102,7 +111,11 @@ func (us *userService) Authenticate(ctx context.Context, email, password, finger
 	return accessToken, refreshToken.UUID.String(), nil
 }
 
-func (us *userService) Refresh(ctx context.Context, refreshToken, fingerprint string) (string, string, error) {
+func (us *userService) Refresh(
+	ctx context.Context,
+	refreshToken,
+	fingerprint string,
+) (string, string, error) {
 	refresh, err := us.tokenService.GetByUUID(ctx, refreshToken)
 	if err != nil {
 		return "", "", err
@@ -142,7 +155,11 @@ func (us *userService) Refresh(ctx context.Context, refreshToken, fingerprint st
 	return access, refresh.UUID.String(), nil
 }
 
-func (us *userService) Logout(ctx context.Context, refreshToken, fingerprint string) error {
+func (us *userService) Logout(
+	ctx context.Context,
+	refreshToken,
+	fingerprint string,
+) error {
 	refresh, err := us.tokenService.GetByUUID(ctx, refreshToken)
 	if err != nil {
 		return apperror.ErrInvalidToken
@@ -167,10 +184,10 @@ func (us *userService) Logout(ctx context.Context, refreshToken, fingerprint str
 	return nil
 }
 
-func (us *userService) GetUserByID(ctx context.Context, id string) (entity.User, error) {
-	panic("implement me")
+func (us *userService) GetUserByID(ctx context.Context, id uint) (entity.User, error) {
+	return us.userRepository.GetUserByID(ctx, id)
 }
 
-func (us *userService) UpdateUser(ctx context.Context, id string, updateUser UpdateUser) error {
+func (us *userService) UpdateUser(ctx context.Context, id uint, updateUser UpdateUser) error {
 	panic("implement me")
 }

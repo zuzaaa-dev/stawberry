@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
@@ -11,23 +12,34 @@ import (
 	"github.com/zuzaaa-dev/stawberry/internal/handler/dto"
 )
 
-const basePath = ""
-
 type UserService interface {
 	CreateUser(ctx context.Context, user user.User, fingerprint string) (string, string, error)
 	Authenticate(ctx context.Context, email, password, fingerprint string) (string, string, error)
 	Refresh(ctx context.Context, refreshToken, fingerprint string) (string, string, error)
 	Logout(ctx context.Context, refreshToken, fingerprint string) error
-	GetUserByID(ctx context.Context, id string) (entity.User, error)
-	UpdateUser(ctx context.Context, id string, updateUser user.UpdateUser) error
+	GetUserByID(ctx context.Context, id uint) (entity.User, error)
+	UpdateUser(ctx context.Context, id uint, updateUser user.UpdateUser) error
 }
 
 type userHandler struct {
 	userService UserService
+	refreshLife int
+	basePath    string
+	domain      string
 }
 
-func NewUserHandler(userService UserService) userHandler {
-	return userHandler{userService: userService}
+func NewUserHandler(
+	userService UserService,
+	refreshLife time.Duration,
+	basePath string,
+	domain string,
+) userHandler {
+	return userHandler{
+		userService: userService,
+		refreshLife: int(refreshLife.Seconds()),
+		basePath:    basePath,
+		domain:      domain,
+	}
 }
 
 func (h *userHandler) Registration(c *gin.Context) {
@@ -55,7 +67,7 @@ func (h *userHandler) Registration(c *gin.Context) {
 		RefreshToken: refreshToken,
 	}
 
-	setRefreshCookie(c, refreshToken, "", 1)
+	setRefreshCookie(c, refreshToken, h.basePath, h.domain, h.refreshLife)
 
 	c.JSON(http.StatusOK, response)
 }
@@ -87,7 +99,7 @@ func (h *userHandler) Login(c *gin.Context) {
 		RefreshToken: refreshToken,
 	}
 
-	setRefreshCookie(c, refreshToken, "", 1)
+	setRefreshCookie(c, refreshToken, h.basePath, h.domain, h.refreshLife)
 
 	c.JSON(http.StatusOK, response)
 }
@@ -131,7 +143,7 @@ func (h *userHandler) Refresh(c *gin.Context) {
 		RefreshToken: refreshToken,
 	}
 
-	setRefreshCookie(c, refreshToken, "", 0)
+	setRefreshCookie(c, refreshToken, h.basePath, h.domain, h.refreshLife)
 
 	c.JSON(http.StatusOK, response)
 }
@@ -172,7 +184,7 @@ func (h *userHandler) Logout(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func setRefreshCookie(c *gin.Context, refreshToken, domain string, maxAge int) {
+func setRefreshCookie(c *gin.Context, refreshToken, basePath, domain string, maxAge int) {
 	jwtCookie := http.Cookie{
 		Name:     "refresh_token",
 		Value:    refreshToken,

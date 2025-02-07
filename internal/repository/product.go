@@ -22,7 +22,10 @@ func NewProductRepository(db *gorm.DB) *productRepository {
 	return &productRepository{db: db}
 }
 
-func (r *productRepository) InsertProduct(ctx context.Context, product product.Product) (uint, error) {
+func (r *productRepository) InsertProduct(
+	ctx context.Context,
+	product product.Product,
+) (uint, error) {
 	productModel := model.ConvertProductFromSvc(product)
 	if err := r.db.WithContext(ctx).Create(productModel).Error; err != nil {
 		if isDuplicateError(err) {
@@ -42,7 +45,10 @@ func (r *productRepository) InsertProduct(ctx context.Context, product product.P
 	return productModel.ID, nil
 }
 
-func (r *productRepository) GetProductByID(ctx context.Context, id string) (entity.Product, error) {
+func (r *productRepository) GetProductByID(
+	ctx context.Context,
+	id string,
+) (entity.Product, error) {
 	var productModel model.Product
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&productModel).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -58,7 +64,11 @@ func (r *productRepository) GetProductByID(ctx context.Context, id string) (enti
 	return model.ConvertProductToEntity(productModel), nil
 }
 
-func (r *productRepository) SelectProducts(ctx context.Context, offset, limit int) ([]entity.Product, int, error) {
+func (r *productRepository) SelectProducts(
+	ctx context.Context,
+	offset,
+	limit int,
+) ([]entity.Product, int, error) {
 	var total int64
 	if err := r.db.WithContext(ctx).Model(&model.Product{}).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
@@ -80,9 +90,15 @@ func (r *productRepository) SelectProducts(ctx context.Context, offset, limit in
 	return products, int(total), nil
 }
 
-func (r *productRepository) SelectStoreProducts(ctx context.Context, id string, offset, limit int) ([]entity.Product, int, error) {
+func (r *productRepository) SelectStoreProducts(
+	ctx context.Context,
+	id string, offset, limit int,
+) ([]entity.Product, int, error) {
 	var total int64
-	if err := r.db.WithContext(ctx).Model(&model.Product{}).Where("store_id = ?", id).Count(&total).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Model(&model.Product{}).
+		Where("store_id = ?", id).
+		Count(&total).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to count store products",
@@ -91,7 +107,10 @@ func (r *productRepository) SelectStoreProducts(ctx context.Context, id string, 
 	}
 
 	var products []entity.Product
-	if err := r.db.WithContext(ctx).Where("store_id = ?", id).Offset(offset).Limit(limit).Find(&products).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Where("store_id = ?", id).
+		Offset(offset).Limit(limit).
+		Find(&products).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
 			Code:    apperror.DatabaseError,
 			Message: "failed to fetch store products",
@@ -102,7 +121,11 @@ func (r *productRepository) SelectStoreProducts(ctx context.Context, id string, 
 	return products, int(total), nil
 }
 
-func (r *productRepository) UpdateProduct(ctx context.Context, id string, update product.UpdateProduct) error {
+func (r *productRepository) UpdateProduct(
+	ctx context.Context,
+	id string,
+	update product.UpdateProduct,
+) error {
 	updateModel := model.ConvertUpdateProductFromSvc(update)
 	tx := r.db.WithContext(ctx).Model(&model.Product{}).Where("id = ?", id).Updates(updateModel)
 	if tx.Error != nil {

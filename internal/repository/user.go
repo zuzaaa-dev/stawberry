@@ -19,19 +19,22 @@ func NewUserRepository(db *gorm.DB) *userRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) InsertUser(ctx context.Context, user user.User) (uint, error) {
+func (r *userRepository) InsertUser(
+	ctx context.Context,
+	user user.User,
+) (uint, error) {
 	userModel := model.ConvertUserFromSvc(user)
 	if err := r.db.WithContext(ctx).Create(userModel).Error; err != nil {
 		if isDuplicateError(err) {
-			return 0, &apperror.ProductError{
+			return 0, &apperror.UserError{
 				Code:    apperror.DuplicateError,
-				Message: "user with this id already exists",
+				Message: "user with this email already exists",
 				Err:     err,
 			}
 		}
-		return 0, &apperror.ProductError{
+		return 0, &apperror.UserError{
 			Code:    apperror.DatabaseError,
-			Message: "failed to create token",
+			Message: "failed to create user",
 			Err:     err,
 		}
 	}
@@ -39,7 +42,10 @@ func (r *userRepository) InsertUser(ctx context.Context, user user.User) (uint, 
 	return userModel.ID, nil
 }
 
-func (r *userRepository) GetUser(ctx context.Context, email string) (entity.User, error) {
+func (r *userRepository) GetUser(
+	ctx context.Context,
+	email string,
+) (entity.User, error) {
 	var userModel model.User
 	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&userModel).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -47,7 +53,7 @@ func (r *userRepository) GetUser(ctx context.Context, email string) (entity.User
 		}
 		return entity.User{}, &apperror.UserError{
 			Code:    apperror.DatabaseError,
-			Message: "failed to fetch user",
+			Message: "failed to fetch user by email",
 			Err:     err,
 		}
 	}
@@ -55,7 +61,10 @@ func (r *userRepository) GetUser(ctx context.Context, email string) (entity.User
 	return model.ConvertUserToEntity(userModel), nil
 }
 
-func (r *userRepository) GetUserByID(ctx context.Context, id uint) (entity.User, error) {
+func (r *userRepository) GetUserByID(
+	ctx context.Context,
+	id uint,
+) (entity.User, error) {
 	var userModel model.User
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&userModel).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -63,7 +72,7 @@ func (r *userRepository) GetUserByID(ctx context.Context, id uint) (entity.User,
 		}
 		return entity.User{}, &apperror.UserError{
 			Code:    apperror.DatabaseError,
-			Message: "failed to fetch user",
+			Message: "failed to fetch user by ID",
 			Err:     err,
 		}
 	}

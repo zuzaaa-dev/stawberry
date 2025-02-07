@@ -14,8 +14,6 @@ import (
 
 var signingMethod = jwt.SigningMethodHS256
 
-const expires = time.Hour * 24 * 30
-
 type Repository interface {
 	InsertToken(ctx context.Context, token entity.RefreshToken) error
 	GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error)
@@ -27,6 +25,8 @@ type Repository interface {
 type tokenService struct {
 	tokenRepository Repository
 	jwtSecret       string
+	refreshLife     time.Duration
+	accessLife      time.Duration
 }
 
 func NewTokenService(tokenRepo Repository, secret string) *tokenService {
@@ -36,13 +36,17 @@ func NewTokenService(tokenRepo Repository, secret string) *tokenService {
 	}
 }
 
-func (ts *tokenService) GenerateTokens(ctx context.Context, fingerprint string, userID uint) (string, entity.RefreshToken, error) {
-	accessToken, err := generateJWT(userID, ts.jwtSecret, time.Hour*1)
+func (ts *tokenService) GenerateTokens(
+	ctx context.Context,
+	fingerprint string,
+	userID uint,
+) (string, entity.RefreshToken, error) {
+	accessToken, err := generateJWT(userID, ts.jwtSecret, ts.accessLife)
 	if err != nil {
 		return "", entity.RefreshToken{}, err
 	}
 
-	entityRefreshToken, err := generateRefresh(fingerprint, userID)
+	entityRefreshToken, err := generateRefresh(fingerprint, userID, ts.refreshLife)
 	if err != nil {
 		return "", entity.RefreshToken{}, err
 	}
@@ -50,7 +54,23 @@ func (ts *tokenService) GenerateTokens(ctx context.Context, fingerprint string, 
 	return accessToken, entityRefreshToken, nil
 }
 
-func (ts *tokenService) Parse(token string) (entity.AccessToken, error) {
+func (ts *tokenService) ValidateToken(
+	ctx context.Context,
+	token string,
+) (entity.AccessToken, error) {
+	accessToken, err := ts.parse(token)
+	if err != nil {
+		return entity.AccessToken{}, err
+	}
+
+	if time.Now().After(accessToken.ExpiresAt) {
+		return entity.AccessToken{}, apperror.ErrInvalidToken
+	}
+
+	return accessToken, nil
+}
+
+func (ts *tokenService) parse(token string) (entity.AccessToken, error) {
 	claim := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(token, claim, func(token *jwt.Token) (interface{}, error) {
 		if token.Header["alg"] != signingMethod.Alg() {
@@ -88,24 +108,38 @@ func (ts *tokenService) Parse(token string) (entity.AccessToken, error) {
 	}, nil
 }
 
-func (ts *tokenService) InsertToken(ctx context.Context, token entity.RefreshToken) error {
+func (ts *tokenService) InsertToken(
+	ctx context.Context,
+	token entity.RefreshToken,
+) error {
 	return ts.tokenRepository.InsertToken(ctx, token)
 }
 
-func (ts *tokenService) GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error) 
-func (ts *tokenService) GetActivesTokenByUserID(ctx context.Context, userID uint) ([]entity.RefreshToken, error) {
+func (ts *tokenService) GetActivesTokenByUserID(
+	ctx context.Context,
+	userID uint,
+) ([]entity.RefreshToken, error) {
 	return ts.tokenRepository.GetActivesTokenByUserID(ctx, userID)
-o
 }
-func (ts *tokenService) RevokeActivesByUserID(ctx context.Context, userID uint) error {
+
+func (ts *tokenService) RevokeActivesByUserID(
+	ctx context.Context,
+	userID uint,
+) error {
 	return ts.tokenRepository.RevokeActivesByUserID(ctx, userID)
-k
 }
-func (ts *tokenService) GetByUUID(ctx context.Context, uuid string) (entity.RefreshToken, error) {
+
+func (ts *tokenService) GetByUUID(
+	ctx context.Context,
+	uuid string,
+) (entity.RefreshToken, error) {
 	return ts.tokenRepository.GetByUUID(ctx, uuid)
-r
 }
-func (ts *tokenService) Update(ctx context.Context, refresh entity.RefreshToken) (entity.RefreshToken, error) {
+
+func (ts *tokenService) Update(
+	ctx context.Context,
+	refresh entity.RefreshToken,
+) (entity.RefreshToken, error) {
 	return ts.tokenRepository.Update(ctx, refresh)
 }
 
@@ -118,7 +152,7 @@ func generateJWT(userID uint, secret string, duration time.Duration) (string, er
 	return token.SignedString([]byte(secret))
 }
 
-func generateRefresh(fingerprint string, userID uint) (entity.RefreshToken, error) {
+func generateRefresh(fingerprint string, userID uint, refreshLife time.Duration) (entity.RefreshToken, error) {
 	now := time.Now()
 
 	refreshUUID, err := uuid.NewRandom()
@@ -129,7 +163,7 @@ func generateRefresh(fingerprint string, userID uint) (entity.RefreshToken, erro
 	return entity.RefreshToken{
 		UUID:        refreshUUID,
 		CreatedAt:   now,
-		ExpiresAt:   now.Add(expires),
+		ExpiresAt:   now.Add(refreshLife),
 		RevokedAt:   nil,
 		Fingerprint: fingerprint,
 		UserID:      userID,
