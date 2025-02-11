@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/notification"
 	"log"
 	"os"
+
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/notification"
 
 	"github.com/zuzaaa-dev/stawberry/internal/repository"
 	"github.com/zuzaaa-dev/stawberry/migrator"

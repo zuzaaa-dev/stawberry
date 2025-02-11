@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
 	"math"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
 )
 
 type NotificationService interface {
@@ -23,7 +24,7 @@ func NewNotificationHandler(notificationService NotificationService) *notificati
 // GetNotification обработчик уведомлений
 // получает все уведомления (одобрение или неодобрение заявки) авторизированного пользователя
 func (h *notificationHandler) GetNotification(c *gin.Context) {
-	// FIXME: сделать user, ok := c.Get("user")
+	// сделать user, ok := c.Get("user")
 	// сейчас в контекст кладется userID, в будущем структура user
 	userID, ok := c.Get("userID")
 	if !ok {
@@ -45,7 +46,7 @@ func (h *notificationHandler) GetNotification(c *gin.Context) {
 
 	offset := (page - 1) * limit
 
-	// FIXME: исправить вызов h.offerService.GetNotification()
+	// исправить вызов h.offerService.GetNotification()
 	// сейчас в контекст кладется userID, в будущем структура user
 	uid, ok := userID.(uint)
 	if !ok {

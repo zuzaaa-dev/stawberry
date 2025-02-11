@@ -17,7 +17,10 @@ func NewNotificationRepository(db *gorm.DB) *notificationRepository {
 	return &notificationRepository{db: db}
 }
 
-func (r *notificationRepository) SelectUserNotifications(id string, offset, limit int) ([]entity.Notification, int, error) {
+func (r *notificationRepository) SelectUserNotifications(
+	id string,
+	offset, limit int,
+) ([]entity.Notification, int, error) {
 	var total int64
 	if err := r.db.Model(&model.Notification{}).Where("user_id = ?", id).Count(&total).Error; err != nil {
 		return nil, 0, &apperror.NotificationError{

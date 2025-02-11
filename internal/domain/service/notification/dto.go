@@ -1,4 +1,4 @@
 package notification
 
-// TODO: пока не нужно, но может понадобиться
-//type Notification struct{}
+// пока не нужно, но может понадобиться
+// type Notification struct{}

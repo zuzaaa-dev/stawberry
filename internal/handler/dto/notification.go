@@ -1,6 +1,6 @@
 package dto
 
-// TODO: пока не нужно, но может понадобиться
+// пока не нужно, но может понадобиться
 //type GetNotificationReq struct{}
 //
 //type GetNotificationResp struct{}

@@ -154,7 +154,7 @@ func handleNotificationError(c *gin.Context, err error) {
 	if errors.As(err, &notificationErr) {
 		status := http.StatusInternalServerError
 
-		// TODO: продумать логику ошибок
+		// продумать логику ошибок
 		switch notificationErr.Code {
 		case apperror.NotFound:
 			status = http.StatusNotFound
