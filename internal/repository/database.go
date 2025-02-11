@@ -5,7 +5,7 @@ import (
 
 	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
 
-	"github.com/zuzaaa-dev/stawberry/internal/config"
+	"github.com/zuzaaa-dev/stawberry/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
