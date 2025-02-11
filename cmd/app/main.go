@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/notification"
+
 	"github.com/zuzaaa-dev/stawberry/internal/repository"
 	"github.com/zuzaaa-dev/stawberry/migrator"
 
@@ -57,15 +59,17 @@ func initializeApp() error {
 
 	productRepository := repository.NewProductRepository(db)
 	offerRepository := repository.NewOfferRepository(db)
+	notificationRepository := repository.NewNotificationRepository(db)
 
 	productService := product.NewProductService(productRepository)
 	offerService := offer.NewOfferService(offerRepository)
+	notificationService := notification.NewNotificationService(notificationRepository)
 
 	// Initialize object storage s3
 	s3 := objectstorage.ObjectStorageConn(cfg)
 
 	// Initialize router
-	router = handler.SetupRouter(productService, offerService, s3)
+	router = handler.SetupRouter(productService, offerService, notificationService, s3)
 
 	return nil
 }
