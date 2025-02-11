@@ -53,3 +53,23 @@ var ErrOfferNotFound = &OfferError{
 	Code:    NotFound,
 	Message: "product not found",
 }
+
+type NotificationError struct {
+	Code    string
+	Message string
+	Err     error
+}
+
+func (e *NotificationError) Error() string {
+	if e.Err != nil {
+		return fmt.Sprintf("%s: %v", e.Message, e.Err)
+	}
+	return e.Message
+}
+
+var (
+	ErrNotificationNotFound = &NotificationError{
+		Code:    NotFound,
+		Message: "notification not found",
+	}
+)

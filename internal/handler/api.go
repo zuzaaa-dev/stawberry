@@ -15,6 +15,7 @@ import (
 func SetupRouter(
 	productService ProductService,
 	offerService OfferService,
+	notificationService NotificationService,
 	s3 *objectstorage.BucketBasics,
 ) *gin.Engine {
 	router := gin.New()
@@ -138,6 +139,34 @@ func handleOfferError(c *gin.Context, err error) {
 		c.JSON(status, gin.H{
 			"code":    offerError.Code,
 			"message": offerError.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code":    apperror.InternalError,
+		"message": "An unexpected error occurred",
+	})
+}
+
+func handleNotificationError(c *gin.Context, err error) {
+	var notificationErr *apperror.NotificationError
+	if errors.As(err, &notificationErr) {
+		status := http.StatusInternalServerError
+
+		// TODO: продумать логику ошибок
+		switch notificationErr.Code {
+		case apperror.NotFound:
+			status = http.StatusNotFound
+		case apperror.DuplicateError:
+			status = http.StatusConflict
+		case apperror.DatabaseError:
+			status = http.StatusInternalServerError
+		}
+
+		c.JSON(status, gin.H{
+			"code":    notificationErr.Code,
+			"message": notificationErr.Message,
 		})
 		return
 	}
