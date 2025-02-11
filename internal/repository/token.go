@@ -18,6 +18,7 @@ func NewTokenRepository(db *gorm.DB) *tokenRepository {
 	return &tokenRepository{db: db}
 }
 
+// InsertToken добавляет новый refresh токен в БД.
 func (r *tokenRepository) InsertToken(
 	ctx context.Context,
 	token entity.RefreshToken,
@@ -45,6 +46,7 @@ func (r *tokenRepository) InsertToken(
 	return nil
 }
 
+// GetActivesTokenByUserID получает список активных refresh токенов пользователя по userID.
 func (r *tokenRepository) GetActivesTokenByUserID(
 	ctx context.Context,
 	userID uint,
@@ -71,6 +73,7 @@ func (r *tokenRepository) GetActivesTokenByUserID(
 	return tokens, nil
 }
 
+// RevokeActivesByUserID помечает все активные refresh токены пользователя как отозванные.
 func (r *tokenRepository) RevokeActivesByUserID(
 	ctx context.Context,
 	userID uint,
@@ -95,6 +98,7 @@ func (r *tokenRepository) RevokeActivesByUserID(
 	return nil
 }
 
+// GetByUUID находит refresh токен по его UUID.
 func (r *tokenRepository) GetByUUID(
 	ctx context.Context,
 	uuid string,
@@ -120,6 +124,7 @@ func (r *tokenRepository) GetByUUID(
 	return model.ConvertTokenToEntity(tokenModel), nil
 }
 
+// Update обновляет refresh токен.
 func (r *tokenRepository) Update(
 	ctx context.Context,
 	refresh entity.RefreshToken,

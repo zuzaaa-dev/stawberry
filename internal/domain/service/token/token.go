@@ -29,13 +29,16 @@ type tokenService struct {
 	accessLife      time.Duration
 }
 
-func NewTokenService(tokenRepo Repository, secret string) *tokenService {
+func NewTokenService(tokenRepo Repository, secret string, refreshLife, accessLife time.Duration) *tokenService {
 	return &tokenService{
 		tokenRepository: tokenRepo,
 		jwtSecret:       secret,
+		refreshLife:     refreshLife,
+		accessLife:      accessLife,
 	}
 }
 
+// GenerateTokens генерирует новый токен доступа и токен обновления для пользователя.
 func (ts *tokenService) GenerateTokens(
 	ctx context.Context,
 	fingerprint string,
@@ -54,6 +57,7 @@ func (ts *tokenService) GenerateTokens(
 	return accessToken, entityRefreshToken, nil
 }
 
+// ValidateToken проверяет access токен и возвращает расшифрованную информацию, если она действительна.
 func (ts *tokenService) ValidateToken(
 	ctx context.Context,
 	token string,
@@ -70,6 +74,7 @@ func (ts *tokenService) ValidateToken(
 	return accessToken, nil
 }
 
+// parse извлекает токен JWT и извлекает claims.
 func (ts *tokenService) parse(token string) (entity.AccessToken, error) {
 	claim := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(token, claim, func(token *jwt.Token) (interface{}, error) {
@@ -115,6 +120,7 @@ func (ts *tokenService) InsertToken(
 	return ts.tokenRepository.InsertToken(ctx, token)
 }
 
+// GetActivesTokenByUserID извлекает все активные токены обновления для конкретного пользователя.
 func (ts *tokenService) GetActivesTokenByUserID(
 	ctx context.Context,
 	userID uint,
@@ -122,6 +128,7 @@ func (ts *tokenService) GetActivesTokenByUserID(
 	return ts.tokenRepository.GetActivesTokenByUserID(ctx, userID)
 }
 
+// RevokeActivesByUserID аннулирует все активные токены обновления для определенного пользователя.
 func (ts *tokenService) RevokeActivesByUserID(
 	ctx context.Context,
 	userID uint,
@@ -143,15 +150,18 @@ func (ts *tokenService) Update(
 	return ts.tokenRepository.Update(ctx, refresh)
 }
 
+// generateJWT создает новый токен доступа JWT с указанным userID и сроком действия.
 func generateJWT(userID uint, secret string, duration time.Duration) (string, error) {
 	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(duration).Unix(),
+		"sub": userID,
+		"exp": time.Now().Add(duration).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
 }
 
+// generateRefresh создает новый refresh токен обновления с указанным
+// userID, fingerprint и сроком действия.
 func generateRefresh(fingerprint string, userID uint, refreshLife time.Duration) (entity.RefreshToken, error) {
 	now := time.Now()
 

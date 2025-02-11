@@ -19,6 +19,8 @@ type TokenValidator interface {
 	ValidateToken(ctx context.Context, token string) (entity.AccessToken, error)
 }
 
+// AuthMiddleware валидирует access token,
+// достает из него userID и проверяет существование пользователя
 func AuthMiddleware(userGetter UserGetter, validator TokenValidator) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHead := c.GetHeader("Authorization")

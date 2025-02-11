@@ -19,6 +19,7 @@ func NewUserRepository(db *gorm.DB) *userRepository {
 	return &userRepository{db: db}
 }
 
+// InsertUser вставляет пользователя в БД
 func (r *userRepository) InsertUser(
 	ctx context.Context,
 	user user.User,
@@ -42,6 +43,7 @@ func (r *userRepository) InsertUser(
 	return userModel.ID, nil
 }
 
+// GetUser получает пользователя по почте
 func (r *userRepository) GetUser(
 	ctx context.Context,
 	email string,
@@ -61,6 +63,7 @@ func (r *userRepository) GetUser(
 	return model.ConvertUserToEntity(userModel), nil
 }
 
+// GetUserByID получает пользователя по айди
 func (r *userRepository) GetUserByID(
 	ctx context.Context,
 	id uint,

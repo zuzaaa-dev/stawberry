@@ -38,6 +38,8 @@ func NewUserService(userRepo Repository) *userService {
 	return &userService{userRepository: userRepo}
 }
 
+// CreateUser создает пользователя, хэшируя его пароль, используя HashArgon2id
+// генерирует access токен и uuid refresh uuid.
 func (us *userService) CreateUser(
 	ctx context.Context,
 	user User,
@@ -68,6 +70,7 @@ func (us *userService) CreateUser(
 	return accessToken, refreshToken.UUID.String(), nil
 }
 
+// Authenticate аутентифицирует пользователя по email и паролю, создавая новые токены.
 func (us *userService) Authenticate(
 	ctx context.Context,
 	email,
@@ -88,6 +91,7 @@ func (us *userService) Authenticate(
 		return "", "", errors.New("invalid password")
 	}
 
+	// проверяет количество токенов у пользователя
 	userActiveTokens, err := us.tokenService.GetActivesTokenByUserID(ctx, user.ID)
 	if err != nil {
 		return "", "", err
@@ -111,6 +115,7 @@ func (us *userService) Authenticate(
 	return accessToken, refreshToken.UUID.String(), nil
 }
 
+// Refresh обновляет пару токенов аутентификации.
 func (us *userService) Refresh(
 	ctx context.Context,
 	refreshToken,
