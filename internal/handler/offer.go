@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"math"
 	"net/http"
 	"strconv"
@@ -14,19 +15,19 @@ import (
 )
 
 type OfferService interface {
-	CreateOffer(offer offer.Offer) (uint, error)
-	GetUserOffers(userID uint, limit, offset int) ([]entity.Offer, int64, error)
-	GetOffer(offerID uint) (entity.Offer, error)
-	UpdateOfferStatus(offerID uint, status string) (entity.Offer, error)
-	DeleteOffer(offerID uint) (entity.Offer, error)
+	CreateOffer(ctx context.Context, offer offer.Offer) (uint, error)
+	GetUserOffers(ctx context.Context, userID uint, limit, offset int) ([]entity.Offer, int64, error)
+	GetOffer(ctx context.Context, offerID uint) (entity.Offer, error)
+	UpdateOfferStatus(ctx context.Context, offerID uint, status string) (entity.Offer, error)
+	DeleteOffer(ctx context.Context, offerID uint) (entity.Offer, error)
 }
 
 type offerHandler struct {
 	offerService OfferService
 }
 
-func NewOfferHandler(offerService OfferService) *offerHandler {
-	return &offerHandler{offerService: offerService}
+func NewOfferHandler(offerService OfferService) offerHandler {
+	return offerHandler{offerService: offerService}
 }
 
 func (h *offerHandler) PostOffer(c *gin.Context) {
@@ -44,7 +45,7 @@ func (h *offerHandler) PostOffer(c *gin.Context) {
 
 	var response dto.PostOfferResp
 	var err error
-	if response.ID, err = h.offerService.CreateOffer(offer.ConvertToSvc()); err != nil {
+	if response.ID, err = h.offerService.CreateOffer(context.Background(), offer.ConvertToSvc()); err != nil {
 		handleOfferError(c, err)
 		return
 	}
@@ -81,7 +82,7 @@ func (h *offerHandler) GetUserOffers(c *gin.Context) {
 
 	offset := (page - 1) * limit
 
-	offers, total, err := h.offerService.GetUserOffers(userID.(uint), offset, limit)
+	offers, total, err := h.offerService.GetUserOffers(context.Background(), userID.(uint), offset, limit)
 	if err != nil {
 		handleOfferError(c, err)
 		return
@@ -107,7 +108,7 @@ func (h *offerHandler) GetOffer(c *gin.Context) {
 		return
 	}
 
-	offer, err := h.offerService.GetOffer(uint(id))
+	offer, err := h.offerService.GetOffer(context.Background(), uint(id))
 	if err != nil {
 		handleOfferError(c, err)
 		return
@@ -132,7 +133,7 @@ func (h *offerHandler) PatchOfferStatus(c *gin.Context) {
 		return
 	}
 
-	offer, err := h.offerService.UpdateOfferStatus(uint(id), req.Status)
+	offer, err := h.offerService.UpdateOfferStatus(context.Background(), uint(id), req.Status)
 	if err != nil {
 		handleOfferError(c, err)
 		return
@@ -156,7 +157,7 @@ func (h *offerHandler) DeleteOffer(c *gin.Context) {
 		return
 	}
 
-	offer, err := h.offerService.DeleteOffer(uint(id))
+	offer, err := h.offerService.DeleteOffer(context.Background(), uint(id))
 	if err != nil {
 		handleOfferError(c, err)
 	}
