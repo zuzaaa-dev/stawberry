@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"math"
 	"net/http"
 	"strconv"
@@ -15,11 +16,11 @@ import (
 )
 
 type ProductService interface {
-	CreateProduct(product product.Product) (uint, error)
-	GetProductByID(id string) (entity.Product, error)
-	GetProducts(offset, limit int) ([]entity.Product, int, error)
-	GetStoreProducts(id string, offset, limit int) ([]entity.Product, int, error)
-	UpdateProduct(id string, updateProduct product.UpdateProduct) error
+	CreateProduct(ctx context.Context, product product.Product) (uint, error)
+	GetProductByID(ctx context.Context, id string) (entity.Product, error)
+	GetProducts(ctx context.Context, offset, limit int) ([]entity.Product, int, error)
+	GetStoreProducts(ctx context.Context, id string, offset, limit int) ([]entity.Product, int, error)
+	UpdateProduct(ctx context.Context, id string, updateProduct product.UpdateProduct) error
 }
 
 type productHandler struct {
@@ -44,7 +45,7 @@ func (h *productHandler) PostProduct(c *gin.Context) {
 
 	var response dto.PostProductResp
 	var err error
-	if response.ID, err = h.productService.CreateProduct(postProductReq.ConvertToSvc()); err != nil {
+	if response.ID, err = h.productService.CreateProduct(context.Background(), postProductReq.ConvertToSvc()); err != nil {
 		handleProductError(c, err)
 		return
 	}
@@ -55,7 +56,7 @@ func (h *productHandler) PostProduct(c *gin.Context) {
 func (h *productHandler) GetProduct(c *gin.Context) {
 	id := c.Param("id")
 
-	product, err := h.productService.GetProductByID(id)
+	product, err := h.productService.GetProductByID(context.Background(), id)
 	if err != nil {
 		handleProductError(c, err)
 		return
@@ -85,7 +86,7 @@ func (h *productHandler) GetProducts(c *gin.Context) {
 
 	offset := (page - 1) * limit
 
-	products, total, err := h.productService.GetProducts(offset, limit)
+	products, total, err := h.productService.GetProducts(context.Background(), offset, limit)
 	if err != nil {
 		handleProductError(c, err)
 		return
@@ -127,7 +128,7 @@ func (h *productHandler) GetStoreProducts(c *gin.Context) {
 
 	offset := (page - 1) * limit
 
-	products, total, err := h.productService.GetStoreProducts(id, offset, limit)
+	products, total, err := h.productService.GetStoreProducts(context.Background(), id, offset, limit)
 	if err != nil {
 		handleProductError(c, err)
 		return
@@ -159,7 +160,7 @@ func (h *productHandler) PatchProduct(c *gin.Context) {
 		return
 	}
 
-	if err := h.productService.UpdateProduct(id, update.ConvertToSvc()); err != nil {
+	if err := h.productService.UpdateProduct(context.Background(), id, update.ConvertToSvc()); err != nil {
 		handleProductError(c, err)
 		return
 	}
