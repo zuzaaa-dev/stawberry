@@ -9,7 +9,7 @@ import (
 	"github.com/zuzaaa-dev/stawberry/internal/domain/service/user"
 
 	"github.com/zuzaaa-dev/stawberry/internal/repository"
-	"github.com/zuzaaa-dev/stawberry/migrator"
+	"github.com/zuzaaa-dev/stawberry/pkg/migrator"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/config"
