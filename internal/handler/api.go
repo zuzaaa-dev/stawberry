@@ -13,10 +13,12 @@ import (
 )
 
 func SetupRouter(
-	productService ProductService,
-	offerService OfferService,
-	notificationService NotificationService,
+	productH productHandler,
+	offerH offerHandler,
+	userH userHandler,
+	notificationH notificationHandler,
 	s3 *objectstorage.BucketBasics,
+	basePath string,
 ) *gin.Engine {
 	router := gin.New()
 
@@ -33,63 +35,13 @@ func SetupRouter(
 		})
 	})
 
-	// API routes group
-	// api := router.Group("/api")
+	base := router.Group(basePath)
+	auth := base.Group("/auth")
 	{
-		// Public routes
-		// public := api.Group("")
-		{
-			// Auth endpoints
-			// public.POST("/auth/register", handlers.Register(db))
-			// public.POST("/auth/login", handlers.Login(db))
-
-			// Public product search
-			// public.GET("/products/search", handlers.SearchProducts(db))
-			// public.GET("/stores", handlers.GetStores(db))
-		}
-
-		// Protected routes
-		// protected := api.Group("")
-		// protected.Use(middleware.AuthMiddleware())
-		{
-			// User profile
-			// protected.GET("/profile", handlers.GetProfile(db))
-			// protected.PUT("/profile", handlers.UpdateProfile(db))
-
-			// Store management
-			// stores := protected.Group("/stores")
-			// {
-			// 	stores.GET("/:id", handlers.GetStore(db))
-			// 	stores.GET("/:id/products", handlers.GetStoreProducts(db))
-			// }
-
-			// Product management
-			// products := protected.Group("/products")
-			// {
-			// 	products.GET("", handlers.GetProducts(db))
-			// 	products.GET("/:id", handlers.GetProduct(db))
-			// 	products.PUT("/:id", handlers.UpdateProduct(db))
-			// 	products.POST("", handlers.AddProduct(db))
-			// }
-
-			// Offer management
-			// offers := protected.Group("/offers")
-			// {
-			// 	offers.POST("", handlers.CreateOffer(db))
-			// 	offers.GET("", handlers.GetUserOffers(db))
-			// 	offers.GET("/:id", handlers.GetOffer(db))
-			// 	offers.PUT("/:id/status", handlers.UpdateOfferStatus(db))
-			// 	offers.DELETE("/:id", handlers.CancelOffer(db))
-			// }
-
-			// Notification management
-			// notifications := protected.Group("/notifications")
-			// {
-			// notifications.GET("", handlers.GetNotifications(db))
-			// notifications.PUT("/:id/read", handlers.MarkNotificationRead(db))
-			// notifications.DELETE("/:id", handlers.DeleteNotification(db))
-			// }
-		}
+		auth.POST("/reg", userH.Registration)
+		auth.POST("/login", userH.Login)
+		auth.POST("/logout", userH.Logout)
+		auth.POST("/refresh", userH.Refresh)
 	}
 
 	return router
@@ -139,6 +91,33 @@ func handleOfferError(c *gin.Context, err error) {
 		c.JSON(status, gin.H{
 			"code":    offerError.Code,
 			"message": offerError.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code":    apperror.InternalError,
+		"message": "An unexpected error occurred",
+	})
+}
+
+func handleUserError(c *gin.Context, err error) {
+	var userError *apperror.UserError
+	if errors.As(err, &userError) {
+		status := http.StatusInternalServerError
+
+		switch userError.Code {
+		case apperror.NotFound:
+			status = http.StatusNotFound
+		case apperror.DuplicateError:
+			status = http.StatusConflict
+		case apperror.DatabaseError:
+			status = http.StatusInternalServerError
+		}
+
+		c.JSON(status, gin.H{
+			"code":    userError.Code,
+			"message": userError.Message,
 		})
 		return
 	}

@@ -17,8 +17,8 @@ type notificationHandler struct {
 	offerService NotificationService
 }
 
-func NewNotificationHandler(notificationService NotificationService) *notificationHandler {
-	return &notificationHandler{offerService: notificationService}
+func NewNotificationHandler(notificationService NotificationService) notificationHandler {
+	return notificationHandler{offerService: notificationService}
 }
 
 // GetNotification обработчик уведомлений

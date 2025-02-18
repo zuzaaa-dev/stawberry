@@ -1,37 +1,69 @@
-// тут дописать надо
 package middleware
 
-//
-//import (
-//	"net/http"
-//
-//	"github.com/zuzaaa-dev/stawberry/auth"
-//
-//	"github.com/gin-gonic/gin"
-//	"github.com/golang-jwt/jwt"
-//)
-//
-//func AuthMiddleware() gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		tokenString := c.GetHeader("Authorization")
-//		if tokenString == "" {
-//			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
-//			c.Abort()
-//			return
-//		}
-//
-//		claims := &auth.Claims{}
-//		token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
-//			return auth.JwtKey, nil
-//		})
-//
-//		if err != nil || !token.Valid {
-//			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-//			c.Abort()
-//			return
-//		}
-//
-//		c.Set("userID", claims.UserID)
-//		c.Next()
-//	}
-//}
+import (
+	"context"
+	"net/http"
+	"strings"
+
+	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
+
+	"github.com/gin-gonic/gin"
+)
+
+type UserGetter interface {
+	GetUserByID(ctx context.Context, id uint) (entity.User, error)
+}
+
+type TokenValidator interface {
+	ValidateToken(ctx context.Context, token string) (entity.AccessToken, error)
+}
+
+// AuthMiddleware валидирует access token,
+// достает из него userID и проверяет существование пользователя
+func AuthMiddleware(userGetter UserGetter, validator TokenValidator) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHead := c.GetHeader("Authorization")
+		if authHead == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    apperror.Unauthorized,
+				"message": "Authorization header is missing",
+			})
+			c.Abort()
+			return
+		}
+
+		parts := strings.Split(authHead, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    apperror.Unauthorized,
+				"message": "Invalid authorization format",
+			})
+			c.Abort()
+			return
+		}
+
+		access, err := validator.ValidateToken(c, parts[1])
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    apperror.Unauthorized,
+				"message": "Invalid or expired token",
+			})
+			c.Abort()
+			return
+		}
+
+		user, err := userGetter.GetUserByID(context.Background(), access.UserID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code":    apperror.Unauthorized,
+				"message": "User not found",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set("user", user)
+		c.Next()
+	}
+}

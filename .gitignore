@@ -1,2 +1,28 @@
 .idea
+
 .env
+
+#Frontend
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+.pnp
+.pnp.js
+
+# Vite / Webpack / Babel / ESLint cache
+.vite/
+.cache/
+.babelrc
+.eslintcache
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
