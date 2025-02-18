@@ -16,15 +16,18 @@ func SetupRouter(
 	productH productHandler,
 	offerH offerHandler,
 	userH userHandler,
+	notificationH notificationHandler,
 	s3 *objectstorage.BucketBasics,
 	basePath string,
 ) *gin.Engine {
 	router := gin.New()
 
+	// Add default middleware
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(middleware.CORS())
 
+	// Health check endpoint
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
@@ -115,6 +118,34 @@ func handleUserError(c *gin.Context, err error) {
 		c.JSON(status, gin.H{
 			"code":    userError.Code,
 			"message": userError.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"code":    apperror.InternalError,
+		"message": "An unexpected error occurred",
+	})
+}
+
+func handleNotificationError(c *gin.Context, err error) {
+	var notificationErr *apperror.NotificationError
+	if errors.As(err, &notificationErr) {
+		status := http.StatusInternalServerError
+
+		// продумать логику ошибок
+		switch notificationErr.Code {
+		case apperror.NotFound:
+			status = http.StatusNotFound
+		case apperror.DuplicateError:
+			status = http.StatusConflict
+		case apperror.DatabaseError:
+			status = http.StatusInternalServerError
+		}
+
+		c.JSON(status, gin.H{
+			"code":    notificationErr.Code,
+			"message": notificationErr.Message,
 		})
 		return
 	}

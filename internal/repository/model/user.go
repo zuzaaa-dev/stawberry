@@ -6,12 +6,13 @@ import (
 )
 
 type User struct {
-	ID       uint   `gorm:"column:id"`
-	Name     string `gorm:"column:name"`
-	Email    string `gorm:"column:email"`
-	Phone    string `gorm:"column:phone"`
-	Password string `gorm:"column:password"`
-	IsStore  bool   `gorm:"column:is_store"`
+	ID            uint   `gorm:"column:id"`
+	Name          string `gorm:"column:name"`
+	Email         string `gorm:"column:email"`
+	Phone         string `gorm:"column:phone"`
+	Password      string `gorm:"column:password"`
+	IsStore       bool   `gorm:"column:is_store"`
+	Notifications []Notification
 }
 
 func ConvertUserFromSvc(u user.User) User {
