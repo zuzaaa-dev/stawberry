@@ -25,7 +25,7 @@ func (r *tokenRepository) InsertToken(
 ) error {
 	tokenModel := model.ConvertTokenFromEntity(token)
 
-	result := r.db.WithContext(ctx).Create(tokenModel)
+	result := r.db.WithContext(ctx).Create(&tokenModel)
 
 	if result.Error != nil {
 		if isDuplicateError(result.Error) {

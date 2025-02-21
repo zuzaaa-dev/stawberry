@@ -25,7 +25,7 @@ func (r *userRepository) InsertUser(
 	user user.User,
 ) (uint, error) {
 	userModel := model.ConvertUserFromSvc(user)
-	if err := r.db.WithContext(ctx).Create(userModel).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&userModel).Error; err != nil {
 		if isDuplicateError(err) {
 			return 0, &apperror.UserError{
 				Code:    apperror.DuplicateError,

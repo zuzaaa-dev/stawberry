@@ -27,7 +27,7 @@ func (r *productRepository) InsertProduct(
 	product product.Product,
 ) (uint, error) {
 	productModel := model.ConvertProductFromSvc(product)
-	if err := r.db.WithContext(ctx).Create(productModel).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(&productModel).Error; err != nil {
 		if isDuplicateError(err) {
 			return 0, &apperror.ProductError{
 				Code:    apperror.DuplicateError,

@@ -34,8 +34,8 @@ type userService struct {
 	tokenService   TokenService
 }
 
-func NewUserService(userRepo Repository) *userService {
-	return &userService{userRepository: userRepo}
+func NewUserService(userRepo Repository, tokenService TokenService) *userService {
+	return &userService{userRepository: userRepo, tokenService: tokenService}
 }
 
 // CreateUser создает пользователя, хэшируя его пароль, используя HashArgon2id

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/token"
 	"log"
 	"os"
 	"time"
@@ -62,11 +63,13 @@ func initializeApp() error {
 	productRepository := repository.NewProductRepository(db)
 	offerRepository := repository.NewOfferRepository(db)
 	userRepository := repository.NewUserRepository(db)
+	tokenRepository := repository.NewTokenRepository(db)
 	notificationRepository := repository.NewNotificationRepository(db)
 
 	productService := product.NewProductService(productRepository)
 	offerService := offer.NewOfferService(offerRepository)
-	userService := user.NewUserService(userRepository)
+	tokenService := token.NewTokenService(tokenRepository, cfg.AccessKey, time.Minute*30, time.Hour*24*30)
+	userService := user.NewUserService(userRepository, tokenService)
 	notificationService := notification.NewNotificationService(notificationRepository)
 
 	productHandler := handler.NewProductHandler(productService)
