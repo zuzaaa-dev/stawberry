@@ -88,7 +88,7 @@ func (us *userService) Authenticate(
 	}
 
 	if !compared {
-		return "", "", errors.New("invalid password")
+		return "", "", apperror.ErrInvalidPassword
 	}
 
 	// проверяет количество токенов у пользователя

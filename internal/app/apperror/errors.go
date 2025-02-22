@@ -5,13 +5,14 @@ import (
 )
 
 const (
-	NotFound       = "NOT_FOUND"
-	DatabaseError  = "DATABASE_ERROR"
-	InternalError  = "INTERNAL_ERROR"
-	DuplicateError = "DUPLICATE_ERROR"
-	BadRequest     = "BAD_REQUEST"
-	Unauthorized   = "UNAUTHORIZED"
-	InvalidToken   = "INVALID_TOKEN"
+	NotFound        = "NOT_FOUND"
+	DatabaseError   = "DATABASE_ERROR"
+	InternalError   = "INTERNAL_ERROR"
+	DuplicateError  = "DUPLICATE_ERROR"
+	BadRequest      = "BAD_REQUEST"
+	Unauthorized    = "UNAUTHORIZED"
+	InvalidToken    = "INVALID_TOKEN"
+	InvalidPassword = "INVALID_PASSWORD"
 )
 
 type ProductError struct {
@@ -81,6 +82,10 @@ var (
 	ErrFailedToGeneratePassword = &ProductError{
 		Code:    InternalError,
 		Message: "failed to generate password",
+	}
+	ErrInvalidPassword = &ProductError{
+		Code:    InvalidPassword,
+		Message: "invalid password",
 	}
 )
 
