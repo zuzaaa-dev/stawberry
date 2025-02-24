@@ -43,7 +43,14 @@ func SetupRouter(
 		auth.POST("/logout", userH.Logout)
 		auth.POST("/refresh", userH.Refresh)
 	}
-
+	product := base.Group("/product")
+	{
+		product.POST("/", productH.PostProduct)
+		product.GET("/", productH.GetProducts)
+		product.GET("/:id", productH.GetProduct)
+		product.GET("/store/:id", productH.GetStoreProducts)
+		product.PATCH("/:id", productH.PatchProduct)
+	}
 	return router
 }
 
