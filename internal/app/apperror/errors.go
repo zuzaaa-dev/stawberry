@@ -5,14 +5,15 @@ import (
 )
 
 const (
-	NotFound        = "NOT_FOUND"
-	DatabaseError   = "DATABASE_ERROR"
-	InternalError   = "INTERNAL_ERROR"
-	DuplicateError  = "DUPLICATE_ERROR"
-	BadRequest      = "BAD_REQUEST"
-	Unauthorized    = "UNAUTHORIZED"
-	InvalidToken    = "INVALID_TOKEN"
-	InvalidPassword = "INVALID_PASSWORD"
+	NotFound           = "NOT_FOUND"
+	DatabaseError      = "DATABASE_ERROR"
+	InternalError      = "INTERNAL_ERROR"
+	DuplicateError     = "DUPLICATE_ERROR"
+	BadRequest         = "BAD_REQUEST"
+	Unauthorized       = "UNAUTHORIZED"
+	InvalidToken       = "INVALID_TOKEN"
+	InvalidPassword    = "INVALID_PASSWORD"
+	InvalidFingerprint = "INVALID_FINGERPRINT"
 )
 
 type ProductError struct {
@@ -71,21 +72,21 @@ func (e *UserError) Error() string {
 }
 
 var (
-	ErrUserNotFound = &ProductError{
+	ErrUserNotFound = &UserError{
 		Code:    NotFound,
-		Message: "product not found",
+		Message: "user not found",
 	}
-	ErrIncorrectPassword = &ProductError{
-		Code:    Unauthorized,
-		Message: "incorrect password",
-	}
-	ErrFailedToGeneratePassword = &ProductError{
+	ErrFailedToGeneratePassword = &UserError{
 		Code:    InternalError,
 		Message: "failed to generate password",
 	}
-	ErrInvalidPassword = &ProductError{
+	ErrInvalidPassword = &UserError{
 		Code:    InvalidPassword,
 		Message: "invalid password",
+	}
+	ErrInvalidFingerprint = &UserError{
+		Code:    InvalidFingerprint,
+		Message: "invalid fingerprint",
 	}
 )
 

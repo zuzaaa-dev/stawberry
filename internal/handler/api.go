@@ -116,8 +116,14 @@ func handleUserError(c *gin.Context, err error) {
 		switch userError.Code {
 		case apperror.NotFound:
 			status = http.StatusNotFound
+		case apperror.InvalidFingerprint:
+			status = http.StatusBadRequest
+		case apperror.InvalidToken:
+			status = http.StatusUnauthorized
 		case apperror.DuplicateError:
 			status = http.StatusConflict
+		case apperror.InvalidPassword:
+			status = http.StatusBadRequest
 		case apperror.DatabaseError:
 			status = http.StatusInternalServerError
 		}

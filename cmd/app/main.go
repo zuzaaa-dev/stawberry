@@ -59,7 +59,6 @@ func initializeApp() error {
 
 	// Run migrations
 	migrator.RunMigrations(db, "migrations")
-
 	productRepository := repository.NewProductRepository(db)
 	offerRepository := repository.NewOfferRepository(db)
 	userRepository := repository.NewUserRepository(db)
