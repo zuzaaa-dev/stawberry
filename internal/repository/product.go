@@ -94,21 +94,21 @@ func (r *productRepository) SelectStoreProducts(
 	ctx context.Context,
 	id string, offset, limit int,
 ) ([]entity.Product, int, error) {
-	var total int64
+	var productIDs []uint
 	if err := r.db.WithContext(ctx).
-		Model(&model.Product{}).
-		Where("store_id = ?", id).
-		Count(&total).Error; err != nil {
+		Model(&model.ShopInventory{}).
+		Where("shop_id = ?", id).
+		Pluck("product_id", &productIDs).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
 			Code:    apperror.DatabaseError,
-			Message: "failed to count store products",
+			Message: "failed to fetch product IDs from shop inventory",
 			Err:     err,
 		}
 	}
 
 	var products []entity.Product
 	if err := r.db.WithContext(ctx).
-		Where("store_id = ?", id).
+		Where("id IN (?)", productIDs).
 		Offset(offset).Limit(limit).
 		Find(&products).Error; err != nil {
 		return nil, 0, &apperror.ProductError{
@@ -118,7 +118,7 @@ func (r *productRepository) SelectStoreProducts(
 		}
 	}
 
-	return products, int(total), nil
+	return products, len(productIDs), nil
 }
 
 func (r *productRepository) UpdateProduct(

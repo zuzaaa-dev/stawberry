@@ -3,12 +3,9 @@ package dto
 import "github.com/zuzaaa-dev/stawberry/internal/domain/service/product"
 
 type PostProductReq struct {
-	StoreID     uint    `json:"store_id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Category    string  `json:"category"`
-	InStock     bool    `json:"in_stock"`
+	Name        string `json:"name"`
+	CategoryId  int    `json:"category_id"`
+	Description string `json:"description"`
 }
 
 type PostProductResp struct {
@@ -17,31 +14,22 @@ type PostProductResp struct {
 
 func (pp *PostProductReq) ConvertToSvc() product.Product {
 	return product.Product{
-		StoreID:     pp.StoreID,
 		Name:        pp.Name,
+		CategoryId:  pp.CategoryId,
 		Description: pp.Description,
-		Price:       pp.Price,
-		Category:    pp.Category,
-		InStock:     pp.InStock,
 	}
 }
 
 type PatchProductReq struct {
-	StoreID     *uint    `json:"store_id,omitempty"`
-	Name        *string  `json:"name,omitempty"`
-	Description *string  `json:"description,omitempty"`
-	Price       *float64 `json:"price,omitempty"`
-	Category    *string  `json:"category,omitempty"`
-	InStock     *bool    `json:"in_stock,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	CategoryId  *int    `json:"category_id,omitempty"`
+	Description *string `json:"description,omitempty"`
 }
 
 func (pp *PatchProductReq) ConvertToSvc() product.UpdateProduct {
 	return product.UpdateProduct{
-		StoreID:     pp.StoreID,
-		Name:        pp.Name,
-		Description: pp.Description,
-		Price:       pp.Price,
-		Category:    pp.Category,
-		InStock:     pp.InStock,
+		Name:        *pp.Name,
+		CategoryId:  *pp.CategoryId,
+		Description: *pp.Description,
 	}
 }

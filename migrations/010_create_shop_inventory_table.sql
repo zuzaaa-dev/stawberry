@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE shop_inventory (
+CREATE TABLE shop_inventories (
     product_id INT NOT NULL,
     shop_id INT NOT NULL,
     is_available BOOLEAN NOT NULL DEFAULT FALSE,
@@ -9,12 +9,12 @@ CREATE TABLE shop_inventory (
     FOREIGN KEY (shop_id) REFERENCES shops(id)
 );
 
-CREATE INDEX idx_shop_inventory_product_id ON shop_inventory(product_id);
-CREATE INDEX idx_shop_inventory_shop_id ON shop_inventory(shop_id);
+CREATE INDEX idx_shop_inventories_product_id ON shop_inventories(product_id);
+CREATE INDEX idx_shop_inventories_shop_id ON shop_inventories(shop_id);
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS shop_inventory;
+DROP TABLE IF EXISTS shop_inventories;
 -- +goose StatementEnd
