@@ -2,13 +2,12 @@ package handler
 
 import (
 	"context"
+	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
+	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"math"
 	"net/http"
 	"strconv"
-	"time"
-
-	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zuzaaa-dev/stawberry/internal/handler/dto"
@@ -31,7 +30,11 @@ func NewOfferHandler(offerService OfferService) offerHandler {
 }
 
 func (h *offerHandler) PostOffer(c *gin.Context) {
-	userID, _ := c.Get("userID")
+	var err error
+	userID, err := strconv.Atoi(c.Param("userID"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
 
 	var offer dto.PostOfferReq
 	if err := c.ShouldBindJSON(&offer); err != nil {
@@ -39,12 +42,10 @@ func (h *offerHandler) PostOffer(c *gin.Context) {
 		return
 	}
 
-	offer.UserID = userID.(uint)
+	offer.UserID = uint(userID)
 	offer.Status = "pending"
-	offer.ExpiresAt = time.Now().Add(24 * time.Hour)
 
 	var response dto.PostOfferResp
-	var err error
 	if response.ID, err = h.offerService.CreateOffer(context.Background(), offer.ConvertToSvc()); err != nil {
 		handleOfferError(c, err)
 		return
@@ -62,27 +63,32 @@ func (h *offerHandler) PostOffer(c *gin.Context) {
 }
 
 func (h *offerHandler) GetUserOffers(c *gin.Context) {
-	userID, ok := c.Get("userID")
-	if !ok {
+	userID, err := strconv.Atoi(c.Param("userID"))
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid UserID"})
 		return
 	}
-
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page number"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperror.BadRequest,
+			"message": "Invalid page number",
+		})
 		return
 	}
 
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil || limit < 1 || limit > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit value"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code":    apperror.BadRequest,
+			"message": "Invalid limit value (should be between 1 and 100)",
+		})
 		return
 	}
 
 	offset := (page - 1) * limit
 
-	offers, total, err := h.offerService.GetUserOffers(context.Background(), userID.(uint), offset, limit)
+	offers, total, err := h.offerService.GetUserOffers(context.Background(), uint(userID), limit, offset)
 	if err != nil {
 		handleOfferError(c, err)
 		return

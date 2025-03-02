@@ -6,7 +6,7 @@ import (
 
 	"github.com/zuzaaa-dev/stawberry/internal/app/apperror"
 
-	"github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
+	o "github.com/zuzaaa-dev/stawberry/internal/domain/service/offer"
 	"github.com/zuzaaa-dev/stawberry/internal/repository/model"
 
 	"github.com/zuzaaa-dev/stawberry/internal/domain/entity"
@@ -23,7 +23,7 @@ func NewOfferRepository(db *gorm.DB) *offerRepository {
 
 func (r *offerRepository) InsertOffer(
 	ctx context.Context,
-	offer offer.Offer,
+	offer o.Offer,
 ) (uint, error) {
 	offerModel := model.ConvertOfferFromSvc(offer)
 

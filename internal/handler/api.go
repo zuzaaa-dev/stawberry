@@ -51,6 +51,14 @@ func SetupRouter(
 		product.GET("/store/:id", productH.GetStoreProducts)
 		product.PATCH("/:id", productH.PatchProduct)
 	}
+	offers := base.Group("/offers")
+	{
+		offers.POST("/:userID", offerH.PostOffer)
+		offers.GET("/:id", offerH.GetOffer)
+		offers.GET("/user/:userID", offerH.GetUserOffers)
+		offers.PATCH("/:id/status", offerH.PatchOfferStatus)
+		offers.DELETE("/:id", offerH.DeleteOffer)
+	}
 	return router
 }
 

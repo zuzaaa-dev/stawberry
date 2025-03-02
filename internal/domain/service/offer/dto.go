@@ -5,13 +5,11 @@ import (
 )
 
 type Offer struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	UserID    uint      `json:"user_id"`
-	ProductID uint      `json:"product_id"`
-	StoreID   uint      `json:"store_id"`
-	Price     float64   `json:"price"`
-	Status    string    `json:"status"`
-	ExpiresAt time.Time `json:"expires_at"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         uint      `json:"id"`
+	OfferPrice float64   `json:"offer_price"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	UserID     *uint     `json:"user_id,omitempty"`
+	ProductID  *uint     `json:"product_id,omitempty"`
 }
